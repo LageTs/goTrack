@@ -142,6 +142,8 @@ func main() {
 		usbTracker.InitUSBDevices(verbose)
 	}
 
+	config.log("Service successful started at: " + time.Now().Format("15:04:05.00")) // hh:mm:ss,ss
+
 	for {
 		select {
 		case <-ticker.C:
