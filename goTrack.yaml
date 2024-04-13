@@ -1,0 +1,25 @@
+# Config for goTrack. Shall be placed in /etc/ as goTrack.yaml
+# Shall the file lock be used? If activated commands will only be executed if the file exists. File will be created at launch.
+fileLock: true
+# File to be checked for file lock
+fileLockPath: "/tmp/goTrack.lock"
+# Delay until start in seconds
+startDelay: 3
+# Interval between checks in milliseconds
+interval: 1000
+# Log file path - print if not existing
+logFile: "/var/log/goTrack.log"
+# Number of old log files to keep: 1 keeps current and last, 0 keeps current
+oldLogs: 1
+# IDs to be ignored
+ignoredIDs:
+  - "Test"
+# Enable usb checking
+usb_tracking: true
+# Commands to be executed
+commands:
+  - command: "shutdown" # Command
+    args: # Arguments as strings
+      - "0"
+    late: true # Set true to execute commands after others
+    usb: true # Set true to execute command on usb changes

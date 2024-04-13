@@ -1,0 +1,8 @@
+[Unit]
+Description=goTrack service to activate at boot
+
+[Service]
+ExecStart=/usr/local/bin/goTrack
+
+[Install]
+WantedBy=multi-user.target
