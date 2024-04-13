@@ -71,6 +71,13 @@ func main() {
 						}
 					}
 				}
+				if fileExists(config.LogFile) {
+					newName := fmt.Sprintf("%s.%d", config.LogFile, 1)
+					err := os.Rename(config.LogFile, newName)
+					if err != nil {
+						NewConfig().logErr(err)
+					}
+				}
 			}
 		}
 	} else {
