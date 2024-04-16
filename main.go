@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/pflag"
 	"gopkg.in/yaml.v2"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -118,6 +119,8 @@ func main() {
 		config.log(string(yamlData))
 	}
 
+	config.log("Waiting for " + strconv.Itoa(config.StartDelay) + " seconds at: " + time.Now().Format("15:04:05.00")) // hh:mm:ss,ss
+
 	// Delay execution before start
 	time.Sleep(time.Duration(config.StartDelay) * time.Second)
 
@@ -142,7 +145,7 @@ func main() {
 		usbTracker.InitUSBDevices(verbose)
 	}
 
-	config.log("Service successful started at: " + time.Now().Format("15:04:05.00")) // hh:mm:ss,ss
+	config.log("Started tracking at: " + time.Now().Format("15:04:05.00"))
 
 	for {
 		select {

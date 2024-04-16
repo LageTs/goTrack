@@ -31,7 +31,7 @@ type Config struct {
 
 // NewConfig Constructor for Config
 func NewConfig() *Config {
-	commands := []Command{Command{
+	commands := []Command{{
 		Command: "shutdown",
 		Args:    []string{"0"},
 		Late:    true,
@@ -120,7 +120,7 @@ func (c Config) log(message string) {
 			}(file)
 
 			// Write log file
-			_, err = file.WriteString(message)
+			_, err = file.WriteString(message + "\n")
 			if err != nil {
 				println("Could not write to log file: " + c.LogFile)
 				println("Error: ", err.Error())
