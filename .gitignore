@@ -1,2 +1,4 @@
 /.idea/
 /goTrack
+/goTrack.debug.lock
+/goTrack.debug.log
