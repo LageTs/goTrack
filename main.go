@@ -150,11 +150,6 @@ func main() {
 	for {
 		select {
 		case <-ticker.C:
-			if debug {
-				// Format the time using the desired layout
-				timeString := time.Now().Format("15:04:05.00") // hh:mm:ss,ss
-				config.log("Tick at: " + timeString)
-			}
 			if config.USBTracking {
 				usbTracker.TrackUSBDevices(noExec, debug)
 			}
