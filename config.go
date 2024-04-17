@@ -89,13 +89,17 @@ func (c Config) exec(callee uint8, noExec bool) {
 				}
 				output, err := exec.Command(command.Command, command.Args...).Output()
 				c.log(string(output))
-				c.logErr(err)
+				if err != nil {
+					c.logErr(err)
+				}
 			}
 		}
 		for _, command := range lateCommands {
 			output, err := exec.Command(command.Command, command.Args...).Output()
 			c.log(string(output))
-			c.logErr(err)
+			if err != nil {
+				c.logErr(err)
+			}
 		}
 	} else {
 		c.log("Execution skipped as file lock is activated but not present")
