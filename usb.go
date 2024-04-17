@@ -31,17 +31,14 @@ func NewUSBTracker(config *Config) *USBTracker {
 func (u *USBTracker) InitUSBDevices(verbose bool) {
 	u.cachedDevices = u.getConnectedUSBDevices()
 	if verbose {
-		fmt.Println("Connected at start:\nID        Count Name")
+		fmt.Println("Connected at start:\nID\t\t\tCount\tName")
 		for id, device := range u.cachedDevices {
 			sum := uint8(0)
 			for _, count := range device.BusCount {
 				sum += count
 			}
-			s := string(sum)
-			for i := uint8(0); len(s) < 4; i++ {
-				s = s + " "
-			}
-			fmt.Println(id, sum, s, device.Name)
+			str := id + "\t" + strconv.Itoa(int(sum)) + "\t\t" + device.Name
+			fmt.Println(str)
 		}
 	}
 }
