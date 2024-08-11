@@ -1,6 +1,9 @@
 # goTrack
 goTrack aims to replace usb killer projects like [usbkill by hephaest0s](https://github.com/hephaest0s/usbkill) in Go and with the idea to be extended to more than usb devices to track.
 
+## Disclaimer
+This project is meant to increase security as it allows automatic reactions to detected events like forensic interference. Nevertheless, we give no guaranty that this works flawless. Neither any guaranty that this won't harm your data. Use it at your own risk.
+
 ## Build
 Just run
 ```shell
@@ -43,9 +46,10 @@ ignoredIDs:
 - "ABCD:9876"
 ```
 
+## Version
+1.0
+
 ## Future Work
 In the future this project can be extended with the ability to check:
-- Network devices: Track for active connection
-- Web services: Track if service is reachable uns responsive
 - Events: React to events like shortcuts
-- Timer: React if some timings are reached (period, time stamp)
+- (optional) Timer: React if some timings are reached (period, time stamp)
