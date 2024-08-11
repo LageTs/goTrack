@@ -3,10 +3,10 @@
 fileLock: true
 # File to be checked for file lock
 fileLockPath: "/tmp/goTrack.lock"
-# Delay until start in seconds
-startDelay: 3
-# Interval between checks in milliseconds
-interval: 1000
+# Delay until start
+startDelay: 3s
+# Interval between checks
+interval: 1000ms
 # Log file path - print if not existing
 logFile: "/var/log/goTrack.log"
 # Number of old log files to keep: 1 keeps current and last, 0 keeps current
@@ -15,11 +15,34 @@ oldLogs: 1
 ignoredIDs:
   - "Test"
 # Enable usb checking
-usb_tracking: true
+usb_tracking: false
+# Enable ping checking
+ping_tracking: false
+# Enable web checking
+web_tracking: false
 # Commands to be executed
 commands:
   - command: "shutdown" # Command
     args: # Arguments as strings
       - "0"
     late: true # Set true to execute commands after others
-    usb: true # Set true to execute command on usb changes
+    usb: false # Set true to execute command on usb changes
+    ping: false # Set true to execute command on ping tracking
+    web: false # Set true to execute command on web tracking
+# Targets to ping
+pingConfig:
+  - target: "127.0.0.1" # Target to ping
+    ping_timeout: 1s # Duration for ping to be identified as failed if no response in received
+    on_success: false # Set true if commands shall be executed on successful ping
+    retry_count: 3 # Number of retries if ping fails before command execution
+    retry_delay: 100ms # Time to wait between retries
+# Targets to curl
+webConfig:
+  - target: "https://example.com" # Target to curl
+    content: "Test" # Content to look for
+    content_is_exact: false # Set true to execute command if responses body is identical to content. false if content is meant to be a substring.
+    status_code: 200 # Http status code to look for
+    on_code_identical: false # Set true to execute commands if received status code is same as configured status code
+    on_https_fails: false # Set true to execute commands if response is received without encryption
+    retry_count: 3 # Number of retries if curl fails before command execution
+    retry_delay: 500ms # Time to wait between retires

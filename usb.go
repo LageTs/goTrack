@@ -43,7 +43,7 @@ func (u *USBTracker) InitUSBDevices(verbose bool) {
 	}
 }
 
-// TrackUSBDevices periodically tracks connected USB devices
+// TrackUSBDevices tracks connected USB devices. Meant to be executed periodically
 func (u *USBTracker) TrackUSBDevices(noExec, debug bool) {
 	// Get list of currently connected USB devices
 	currentDevices := u.getConnectedUSBDevices()

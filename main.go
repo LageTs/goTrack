@@ -5,7 +5,6 @@ import (
 	"github.com/spf13/pflag"
 	"gopkg.in/yaml.v2"
 	"os"
-	"strconv"
 	"time"
 )
 
@@ -13,14 +12,15 @@ const defaultConfigPath = "/etc/goTrack.yaml"
 
 func main() {
 	// Define command-line flags
-	intervalFlag := pflag.IntP("interval", "i", 0, "Interval for polling USB devices in milliseconds")
+	intervalFlag := pflag.DurationP("interval", "i", time.Duration(0), "Interval for polling USB devices")
 	debugFlag := pflag.BoolP("debug", "d", false, "Debug mode: Print debugging notes")
-	verboseFlag := pflag.BoolP("verbose", "v", false, "Print state at start")
+	verboseFlag := pflag.BoolP("verbose", "x", false, "Print state at start")
 	noExecFlag := pflag.BoolP("noExec", "n", false, "Do not execute on device detection")
 	helpFlag := pflag.BoolP("help", "h", false, "Show help text")
 	commandFlag := pflag.StringP("command", "c", "", "Command (chain) to be executed on device change detection")
 	commandArgFlag := pflag.StringP("arguments", "a", "", "Command arguments")
 	configPathFlag := pflag.StringP("configPath", "p", "", "Path to config")
+	versionFlag := pflag.BoolP("version", "v", false, "Print version text")
 
 	// Parse command-line flags
 	pflag.Parse()
@@ -28,6 +28,12 @@ func main() {
 	// Show help text if help flag is provided
 	if *helpFlag {
 		showHelp()
+		return
+	}
+
+	// Show version text
+	if *versionFlag {
+		fmt.Println("Version: goTrack 1.0")
 		return
 	}
 
@@ -119,31 +125,41 @@ func main() {
 		config.log(string(yamlData))
 	}
 
-	config.log("Waiting for " + strconv.Itoa(config.StartDelay) + " seconds at: " + time.Now().Format("15:04:05.00")) // hh:mm:ss,ss
+	config.log("Waiting for " + config.StartDelay.String() + " at: " + time.Now().Format("15:04:05.00")) // hh:mm:ss,ss
 
 	// Delay execution before start
-	time.Sleep(time.Duration(config.StartDelay) * time.Second)
+	time.Sleep(config.StartDelay)
 
 	// Create file lock if activated
 	if config.FileLock {
 		createEmptyFileIfMissing(config.FileLockPath)
 	}
 
+	// Convert verboseFlag to var
+	verbose := *verboseFlag
+
 	// Start ticker
-	ticker := time.NewTicker(time.Duration(config.Interval) * time.Millisecond)
+	ticker := time.NewTicker(config.Interval)
 	defer ticker.Stop()
 
 	// Create USB tracker with loaded configuration
 	var usbTracker *USBTracker
 	if config.USBTracking {
 		usbTracker = NewUSBTracker(config)
-	}
-
-	// Print Current state for verbose mode and Init usbTracker
-	verbose := *verboseFlag
-	if config.USBTracking {
 		usbTracker.InitUSBDevices(verbose)
 	}
+
+	var pingTracker *PingTracker
+	if config.PingTracking {
+		pingTracker = NewPingTracker(config)
+	}
+
+	var webTracker *WebTracker
+	if config.WebTracking {
+		webTracker = NewWebTracker(config)
+	}
+
+	// Create Ping tracker with loaded configuration
 
 	config.log("Started tracking at: " + time.Now().Format("15:04:05.00"))
 
@@ -151,7 +167,13 @@ func main() {
 		select {
 		case <-ticker.C:
 			if config.USBTracking {
-				usbTracker.TrackUSBDevices(noExec, debug)
+				go usbTracker.TrackUSBDevices(noExec, debug)
+			}
+			if config.PingTracking {
+				go pingTracker.TrackPingTargets(noExec, debug)
+			}
+			if config.WebTracking {
+				go webTracker.TrackWebSources(noExec, debug)
 			}
 		}
 	}

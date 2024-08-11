@@ -1,12 +1,12 @@
 # Config for goTrack. Shall be placed in /etc/ as goTrack.yaml
-# Shall the file lock be used? If activated commands will only be executed if the file exists. File will be created at launch.
+# If true commands will only be executed if the file exists. File will be created at launch.
 fileLock: true
 # File to be checked for file lock
 fileLockPath: "goTrack.debug.lock"
-# Delay until start in seconds
-startDelay: 1
-# Interval between checks in milliseconds
-interval: 1000
+# Delay until start
+startDelay: 1s
+# Interval between checks
+interval: 5000ms
 # Log file path - print if not existing
 logFile: "goTrack.debug.log"
 # Number of old log files to keep: 1 keeps current and last, 0 keeps current
@@ -15,11 +15,34 @@ oldLogs: 0
 ignoredIDs:
   - "Test"
 # Enable usb checking
-usb_tracking: true
+usb_tracking: false
+# Enable ping checking
+ping_tracking: false
+# Enable web checking
+web_tracking: true
 # Commands to be executed
 commands:
   - command: "ls" # Command
     args: # Arguments as strings
-      - "0"
+      - "-la"
     late: true # Set true to execute commands after others
     usb: true # Set true to execute command on usb changes
+    ping: true # Set true to execute command on ping tracking
+    web: true # Set true to execute command on web tracking
+# Targets to ping
+pingConfig:
+  - target: "192.168.178.2" # Target to ping
+    ping_timeout: 1s # Duration for ping to be identified as failed if no response in received
+    on_success: false # Set true if commands shall be executed on successful ping
+    retry_count: 3 # Number of retries if ping fails before command execution
+    retry_delay: 1000ms # Time to wait between retries
+# Targets to curl
+webConfig:
+  - target: "https://lagets.de" # Target to curl
+    content: "Test" # Content to look for
+    content_is_exact: false # Set true to execute command if responses body is identical to content. false if content is meant to be a substring.
+    status_code: 200 # Http status code to look for
+    on_code_identical: false # Set true to execute commands if received status code is same as configured status code
+    on_https_fails: false # Set true to execute commands if response is received without encryption
+    retry_count: 3 # Number of retries if curl fails before command execution
+    retry_delay: 500ms # Time to wait between retires
