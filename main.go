@@ -125,11 +125,6 @@ func main() {
 		config.log(string(yamlData))
 	}
 
-	config.log("Waiting for " + config.StartDelay.String() + " at: " + time.Now().Format("15:04:05.00")) // hh:mm:ss,ss
-
-	// Delay execution before start
-	time.Sleep(config.StartDelay)
-
 	// Create file lock if activated
 	if config.FileLock {
 		createEmptyFileIfMissing(config.FileLockPath)
@@ -137,6 +132,11 @@ func main() {
 
 	// Convert verboseFlag to var
 	verbose := *verboseFlag
+
+	config.printAndLog("Waiting for " + config.StartDelay.String() + " at: " + time.Now().Format("15:04:05.00")) // hh:mm:ss,ss
+
+	// Delay execution before start
+	time.Sleep(config.StartDelay)
 
 	// Start ticker
 	ticker := time.NewTicker(config.Interval)
@@ -159,10 +159,8 @@ func main() {
 		webTracker = NewWebTracker(config)
 	}
 
-	// Create Ping tracker with loaded configuration
-
+	// Create tracker with loaded configuration
 	config.log("Started tracking at: " + time.Now().Format("15:04:05.00"))
-
 	for {
 		select {
 		case <-ticker.C:

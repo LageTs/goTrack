@@ -175,6 +175,20 @@ func (c Config) logErr(err error) {
 	c.log(err.Error())
 }
 
+// printAndLog is a function to print the log message to stdout and also to log normally. Returns false if only stdout is used
+func (c Config) printAndLog(message string) bool {
+	if len(c.LogFile) > 0 {
+		// Print and log
+		println(message)
+		c.log(message)
+		return true
+	} else {
+		// Only print
+		println(message)
+		return false
+	}
+}
+
 // log handles logging with log file path from config
 func (c Config) log(message string) {
 	if len(c.LogFile) > 0 {
