@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/spf13/pflag"
-	"gopkg.in/yaml.v2"
 	"os"
 	"time"
+
+	"github.com/spf13/pflag"
+	"gopkg.in/yaml.v2"
 )
 
 const defaultConfigPath = "/etc/goTrack.yaml"
@@ -125,9 +126,9 @@ func main() {
 		config.log(string(yamlData))
 	}
 
-	// Create file lock if activated
-	if config.FileLock {
-		createEmptyFileIfMissing(config.FileLockPath)
+	// Delete file lock if FileLockDeletion is activated
+	if config.FileLockDeletion {
+		config.deleteFileIfExisting(config.FileLockPath)
 	}
 
 	// Convert verboseFlag to var
@@ -160,7 +161,7 @@ func main() {
 	}
 
 	// Create tracker with loaded configuration
-	config.log("Started tracking at: " + time.Now().Format("15:04:05.00"))
+	config.printAndLog("Started tracking at: " + time.Now().Format("15:04:05.00"))
 	for {
 		select {
 		case <-ticker.C:

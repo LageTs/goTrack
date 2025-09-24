@@ -17,6 +17,9 @@ goTrack -h
 ```
 goTrack is meant to be run as root.
 
+## Requirements
+`lsusb` if usb tracking shall be enabled.
+
 ## Installation
 Place the executable at `/usr/local/bin/goTrack` and the config file at `/etc/goTrack.yaml`.
 
@@ -47,7 +50,13 @@ ignoredIDs:
 ```
 
 ## Version
-1.0
+1.1
+
+### Change log
+#### V1.1
+Changed `fileLock` functionality to be blocking not enabling. See default `goTrack.yaml` for new functionality.
+#### V1.0
+Initial release
 
 ## Future Work
 In the future this project can be extended with the ability to check:

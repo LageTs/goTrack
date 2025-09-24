@@ -1,8 +1,10 @@
 # Config for goTrack. Shall be placed in /etc/ as goTrack.yaml
-# Shall the file lock be used? If activated commands will only be executed if the file exists. File will be created at launch.
+# Shall the file lock be used? If activated commands will only be executed if the file doesn't exist.
 fileLock: true
 # File to be checked for file lock
 fileLockPath: "/tmp/goTrack.lock"
+# If true, the file lock will be deleted at start, before delay
+fileLockDeletion: true
 # Delay until start
 startDelay: 3s
 # Interval between checks

@@ -1,8 +1,10 @@
 # Config for goTrack. Shall be placed in /etc/ as goTrack.yaml
-# If true commands will only be executed if the file exists. File will be created at launch.
+# Shall the file lock be used? If activated commands will only be executed if the file doesn't exist.
 fileLock: true
 # File to be checked for file lock
 fileLockPath: "goTrack.debug.lock"
+# If true, the file lock will be deleted at start, before delay
+fileLockDeletion: false
 # Delay until start
 startDelay: 1s
 # Interval between checks
@@ -15,11 +17,11 @@ oldLogs: 0
 ignoredIDs:
   - "Test"
 # Enable usb checking
-usb_tracking: false
+usb_tracking: true
 # Enable ping checking
 ping_tracking: false
 # Enable web checking
-web_tracking: true
+web_tracking: false
 # Commands to be executed
 commands:
   - command: "ls" # Command

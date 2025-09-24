@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
+
+	"gopkg.in/yaml.v2"
 )
 
 const CalleeUSB uint8 = 1
@@ -61,6 +62,7 @@ type Command struct {
 type Config struct {
 	FileLock            bool          `yaml:"fileLock"`
 	FileLockPath        string        `yaml:"fileLockPath"`
+	FileLockDeletion    bool          `yaml:"fileLockDeletion"`
 	StartDelay          time.Duration `yaml:"startDelay"`
 	Interval            time.Duration `yaml:"interval"`
 	LogFile             string        `yaml:"logFile"`
@@ -81,14 +83,15 @@ func NewConfig() *Config {
 	webTrackingConfig := []WebConfig{{}}
 
 	return &Config{
-		FileLock:            false,
-		FileLockPath:        "",
-		StartDelay:          0 * time.Second,
+		FileLock:            true,
+		FileLockPath:        "/tmp/goTrack.lock",
+		FileLockDeletion:    true,
+		StartDelay:          3 * time.Second,
 		Interval:            1000 * time.Millisecond,
-		LogFile:             "",
+		LogFile:             "/var/log/goTrack.log",
 		OldLogs:             1,
 		IgnoredIDs:          nil,
-		USBTracking:         true,
+		USBTracking:         false,
 		PingTracking:        false,
 		WebTracking:         false,
 		Commands:            commands,
@@ -133,7 +136,7 @@ func (c Config) exec(callee uint8, noExec bool) {
 	// If noExec is set nothing will be executed
 	if noExec {
 		c.log("Execution aborted due to \"NoExec\"")
-	} else if !c.FileLock || c.FileLock && fileExists(c.FileLockPath) {
+	} else if !c.FileLock || c.FileLock && !fileExists(c.FileLockPath) {
 		// Execution will be started
 		// lateCommands holds all commands that shall be executed after others
 		var lateCommands []Command
@@ -166,7 +169,7 @@ func (c Config) exec(callee uint8, noExec bool) {
 			c.commandExecution(command)
 		}
 	} else {
-		c.log("Execution skipped as file lock is activated but not present")
+		c.log("Execution skipped as file lock is activated and present")
 	}
 }
 
@@ -235,19 +238,13 @@ func fileExists(path string) bool {
 	return true
 }
 
-// createEmptyFileIfMissing creates an empty file is the path does not exist else does nothing.
-func createEmptyFileIfMissing(path string) {
-	if !fileExists(path) {
-		createPath(path)
-		file, err := os.Create(path)
+// deleteFileIfExisting deletes a file if it exists
+func (c Config) deleteFileIfExisting(path string) {
+	if fileExists(path) {
+		err := os.Remove(path)
 		if err != nil {
-			println("File error: ", err)
-			os.Exit(-2)
-		}
-		err = file.Close()
-		if err != nil {
-			println("File error: ", err)
-			os.Exit(-3)
+			c.logErr(err)
+			return
 		}
 	}
 }
