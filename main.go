@@ -34,7 +34,7 @@ func main() {
 
 	// Show version text
 	if *versionFlag {
-		fmt.Println("Version: goTrack 1.0")
+		fmt.Println("Version: goTrack 1.1")
 		return
 	}
 
