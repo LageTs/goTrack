@@ -51,11 +51,13 @@ usb_ignored_ids:
 ```
 
 ## Version
-1.2
+1.3
 
 ### Change log
+#### V1.3
+Independent intervals for all trackers.
 #### V1.2
-Refactoring of Configuration
+Refactoring of configuration.
 #### V1.1
 Changed `fileLock` functionality to be blocking not enabling. See default `goTrack.yaml` for new functionality.
 #### V1.0

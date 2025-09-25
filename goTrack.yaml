@@ -1,6 +1,6 @@
 # Config for goTrack. Shall be placed in /etc/ as goTrack.yaml
 # Version of this config file
-config_version: 1.2
+config_version: 1.3
 # Shall the file lock be used? If activated commands will only be executed if the file doesn't exist.
 file_lock: true
 # File to be checked for file lock
@@ -9,19 +9,21 @@ file_lock_path: "/tmp/goTrack.lock"
 file_lock_deletion: true
 # Delay until start
 start_delay: 3s
-# Interval between checks
-interval: 1000ms
 # Log file path - print if not existing
 log_file: "/var/log/goTrack.log"
 # Number of old log files to keep: 1 keeps current and last, 0 keeps current
 old_logs: 1
 # Enable usb checking
 usb_tracking: false
+# Interval between checks
+usb_interval: 1000ms
 # IDs to be ignored
 usb_ignored_ids:
   - "Test"
 # Enable ping checking
 ping_tracking: false
+# Interval between checks
+ping_interval: 10000ms
 # Targets to ping
 ping_targets:
   - target: "127.0.0.1" # Target to ping
@@ -31,6 +33,8 @@ ping_targets:
     retry_delay: 100ms # Time to wait between retries
 # Enable web checking
 web_tracking: false
+# Interval between checks
+web_interval: 60000ms
 # Targets to curl
 web_targets:
   - target: "https://example.com" # Target to curl

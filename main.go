@@ -10,7 +10,7 @@ import (
 )
 
 const defaultConfigPath = "/etc/goTrack.yaml"
-const version = "1.2"
+const version = "1.3"
 
 func main() {
 	// Define command-line flags
@@ -98,7 +98,9 @@ func main() {
 
 	// Override interval with command-line flag if provided
 	if *intervalFlag != 0 {
-		config.Interval = *intervalFlag
+		config.USBInterval = *intervalFlag
+		config.PingInterval = *intervalFlag
+		config.WebInterval = *intervalFlag
 	}
 
 	// Overwrite command with command-line flag if provided
@@ -139,44 +141,69 @@ func main() {
 
 	// Delay execution before start
 	time.Sleep(config.StartDelay)
-
-	// Start ticker
-	ticker := time.NewTicker(config.Interval)
-	defer ticker.Stop()
+	config.printAndLog("Finished waiting at: " + time.Now().Format("15:04:05.00"))
 
 	// Create USB tracker with loaded configuration
-	var usbTracker *USBTracker
 	if config.USBTracking {
-		usbTracker = NewUSBTracker(config)
+		usbTracker := NewUSBTracker(config)
 		usbTracker.InitUSBDevices(verbose)
+
+		// Start ticker
+		usbTicker := time.NewTicker(config.USBInterval)
+		defer usbTicker.Stop()
+
+		config.printAndLog("Started USB tracking at: " + time.Now().Format("15:04:05.00"))
+
+		// Start tracking
+		go func() {
+			for {
+				select {
+				case <-usbTicker.C:
+					go usbTracker.TrackUSBDevices(noExec, debug)
+				}
+			}
+		}()
 	}
 
-	var pingTracker *PingTracker
 	if config.PingTracking {
-		pingTracker = NewPingTracker(config)
+		pingTracker := NewPingTracker(config)
+
+		// Start ticker
+		pingTicker := time.NewTicker(config.PingInterval)
+		defer pingTicker.Stop()
+
+		config.printAndLog("Started Ping tracking at: " + time.Now().Format("15:04:05.00"))
+
+		go func() {
+			for {
+				select {
+				case <-pingTicker.C:
+					go pingTracker.TrackPingTargets(noExec, debug)
+				}
+			}
+		}()
 	}
 
-	var webTracker *WebTracker
 	if config.WebTracking {
-		webTracker = NewWebTracker(config)
+		webTracker := NewWebTracker(config)
+
+		// Start ticker
+		webTicker := time.NewTicker(config.WebInterval)
+		defer webTicker.Stop()
+
+		config.printAndLog("Started Web tracking at: " + time.Now().Format("15:04:05.00"))
+
+		go func() {
+			for {
+				select {
+				case <-webTicker.C:
+					go webTracker.TrackWebSources(noExec, debug)
+				}
+			}
+		}()
 	}
 
-	// Create tracker with loaded configuration
-	config.printAndLog("Started tracking at: " + time.Now().Format("15:04:05.00"))
-	for {
-		select {
-		case <-ticker.C:
-			if config.USBTracking {
-				go usbTracker.TrackUSBDevices(noExec, debug)
-			}
-			if config.PingTracking {
-				go pingTracker.TrackPingTargets(noExec, debug)
-			}
-			if config.WebTracking {
-				go webTracker.TrackWebSources(noExec, debug)
-			}
-		}
-	}
+	select {} // keeps program running
 }
 
 func showHelp() {

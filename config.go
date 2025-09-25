@@ -64,15 +64,17 @@ type Config struct {
 	FileLockPath        string        `yaml:"file_lock_path"`
 	FileLockDeletion    bool          `yaml:"file_lock_deletion"`
 	StartDelay          time.Duration `yaml:"start_delay"`
-	Interval            time.Duration `yaml:"interval"`
 	LogFile             string        `yaml:"log_file"`
 	OldLogs             int           `yaml:"old_logs"`
 	USBTracking         bool          `yaml:"usb_tracking"`
+	USBInterval         time.Duration `yaml:"usb_interval"`
 	IgnoredIDs          []string      `yaml:"usb_ignored_ids"`
 	PingTracking        bool          `yaml:"ping_tracking"`
-	PingTrackingConfigs []PingTarget  `yaml:"pingTargets"`
+	PingInterval        time.Duration `yaml:"ping_interval"`
+	PingTrackingConfigs []PingTarget  `yaml:"ping_targets"`
 	WebTracking         bool          `yaml:"web_tracking"`
-	WebTrackingConfigs  []WebTarget   `yaml:"webTargets"`
+	WebInterval         time.Duration `yaml:"web_interval"`
+	WebTrackingConfigs  []WebTarget   `yaml:"web_targets"`
 	Commands            []Command     `yaml:"commands"`
 }
 
@@ -87,14 +89,16 @@ func NewConfig() *Config {
 		FileLockPath:        "/tmp/goTrack.lock",
 		FileLockDeletion:    true,
 		StartDelay:          3 * time.Second,
-		Interval:            1000 * time.Millisecond,
 		LogFile:             "/var/log/goTrack.log",
 		OldLogs:             1,
 		USBTracking:         false,
+		USBInterval:         1000 * time.Millisecond,
 		IgnoredIDs:          nil,
 		PingTracking:        false,
+		PingInterval:        10000 * time.Millisecond,
 		PingTrackingConfigs: pingTrackingConfig,
 		WebTracking:         false,
+		WebInterval:         60000 * time.Millisecond,
 		WebTrackingConfigs:  webTrackingConfig,
 		Commands:            commands,
 	}
