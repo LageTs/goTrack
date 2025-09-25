@@ -14,8 +14,8 @@ const CalleeUSB uint8 = 1
 const CalleePing uint8 = 2
 const CalleeWeb uint8 = 3
 
-// WebConfig represents the configuration struct for web content to be tracked. TODO: Not introduced in default config
-type WebConfig struct {
+// WebTarget represents the configuration struct for web content to be tracked.
+type WebTarget struct {
 	Target string `yaml:"target"`
 	// Content and ContentIsExact will be ignored if this is the empty string.
 	Content string `yaml:"content"`
@@ -33,8 +33,8 @@ type WebConfig struct {
 	RetryDelay time.Duration `yaml:"retry_delay"`
 }
 
-// PingConfig represents the configuration struct for pings to be tracked. TODO: Not introduced in default config
-type PingConfig struct {
+// PingTarget represents the configuration struct for pings to be tracked.
+type PingTarget struct {
 	Target      string        `yaml:"target"`
 	PingTimeout time.Duration `yaml:"ping_timeout"`
 	// If OnSuccess is true the configured commands will be executed if the ping is successfully received back. If false they will be executed if ping fails.
@@ -60,27 +60,27 @@ type Command struct {
 
 // Config represents the configuration for goTrack
 type Config struct {
-	FileLock            bool          `yaml:"fileLock"`
-	FileLockPath        string        `yaml:"fileLockPath"`
-	FileLockDeletion    bool          `yaml:"fileLockDeletion"`
-	StartDelay          time.Duration `yaml:"startDelay"`
+	FileLock            bool          `yaml:"file_lock"`
+	FileLockPath        string        `yaml:"file_lock_path"`
+	FileLockDeletion    bool          `yaml:"file_lock_deletion"`
+	StartDelay          time.Duration `yaml:"start_delay"`
 	Interval            time.Duration `yaml:"interval"`
-	LogFile             string        `yaml:"logFile"`
-	OldLogs             int           `yaml:"oldLogs"`
-	IgnoredIDs          []string      `yaml:"ignoredIDs"`
+	LogFile             string        `yaml:"log_file"`
+	OldLogs             int           `yaml:"old_logs"`
 	USBTracking         bool          `yaml:"usb_tracking"`
+	IgnoredIDs          []string      `yaml:"usb_ignored_ids"`
 	PingTracking        bool          `yaml:"ping_tracking"`
+	PingTrackingConfigs []PingTarget  `yaml:"pingTargets"`
 	WebTracking         bool          `yaml:"web_tracking"`
+	WebTrackingConfigs  []WebTarget   `yaml:"webTargets"`
 	Commands            []Command     `yaml:"commands"`
-	PingTrackingConfigs []PingConfig  `yaml:"pingConfig"`
-	WebTrackingConfigs  []WebConfig   `yaml:"webConfig"`
 }
 
 // NewConfig Constructor for Config
 func NewConfig() *Config {
 	commands := []Command{{}}
-	pingTrackingConfig := []PingConfig{{}}
-	webTrackingConfig := []WebConfig{{}}
+	pingTrackingConfig := []PingTarget{{}}
+	webTrackingConfig := []WebTarget{{}}
 
 	return &Config{
 		FileLock:            true,
@@ -90,13 +90,13 @@ func NewConfig() *Config {
 		Interval:            1000 * time.Millisecond,
 		LogFile:             "/var/log/goTrack.log",
 		OldLogs:             1,
-		IgnoredIDs:          nil,
 		USBTracking:         false,
+		IgnoredIDs:          nil,
 		PingTracking:        false,
-		WebTracking:         false,
-		Commands:            commands,
 		PingTrackingConfigs: pingTrackingConfig,
+		WebTracking:         false,
 		WebTrackingConfigs:  webTrackingConfig,
+		Commands:            commands,
 	}
 }
 

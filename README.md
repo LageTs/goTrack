@@ -32,27 +32,30 @@ commands:
       - "0"
     late: true # Set true to execute commands after others
     usb: true # Set true to execute command on usb changes
+    ping: false # Set true to execute command on ping tracking
+    web: false # Set true to execute command on web tracking
 ```
 `command` is the terminal command to be executed if `goTrack` detects a not ignored change.
 `args` are the arguments for that command
 `late` Commands are executed in two queues: `late=false` commands will guaranteed be executed before `late=true` commands. Commands with the same `late` state are meant to be executed in order but that is not guaranteed.
-`usb` commands with this parameter set to true will be executed with an usb-change detected by goTrack. This is meant for later extensions of goTrack to track other changes.
-
+`usb` commands with this parameter set to true will be executed with an usb-change detected by goTrack. `ping` and `web` work in the same way as `usb`.
 ```
-ignoredIDs:
+usb_ignored_ids:
 - "Test"
 ```
 Includes ignored IDs for usb tracking. Those IDs can be seen if `goTrack -n` is run. Example:
 ```
-ignoredIDs:
+usb_ignored_ids:
 - "1234:5678"
 - "ABCD:9876"
 ```
 
 ## Version
-1.1
+1.2
 
 ### Change log
+#### V1.2
+Refactoring of Configuration
 #### V1.1
 Changed `fileLock` functionality to be blocking not enabling. See default `goTrack.yaml` for new functionality.
 #### V1.0

@@ -33,7 +33,7 @@ func (w *WebTracker) TrackWebSources(noExec, debug bool) {
 }
 
 // trackWebSource tracks web sources. Meant to be executed periodically
-func (w *WebTracker) trackWebSource(noExec, debug bool, config WebConfig) {
+func (w *WebTracker) trackWebSource(noExec, debug bool, config WebTarget) {
 	if debug {
 		w.Config.log("Web curl for: " + config.Target)
 	}
@@ -67,7 +67,7 @@ func (w *WebTracker) trackWebSource(noExec, debug bool, config WebConfig) {
 	}
 }
 
-func (w *WebTracker) curl(debug bool, config WebConfig) webCurl {
+func (w *WebTracker) curl(debug bool, config WebTarget) webCurl {
 	res := webCurl{
 		status:  -1,
 		content: "",

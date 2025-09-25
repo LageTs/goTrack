@@ -1,27 +1,46 @@
 # Config for goTrack. Shall be placed in /etc/ as goTrack.yaml
+# Version of this config file
+config_version: 1.2
 # Shall the file lock be used? If activated commands will only be executed if the file doesn't exist.
-fileLock: true
+file_lock: true
 # File to be checked for file lock
-fileLockPath: "/tmp/goTrack.lock"
+file_lock_path: "/tmp/goTrack.lock"
 # If true, the file lock will be deleted at start, before delay
-fileLockDeletion: true
+file_lock_deletion: true
 # Delay until start
-startDelay: 3s
+start_delay: 3s
 # Interval between checks
 interval: 1000ms
 # Log file path - print if not existing
-logFile: "/var/log/goTrack.log"
+log_file: "/var/log/goTrack.log"
 # Number of old log files to keep: 1 keeps current and last, 0 keeps current
-oldLogs: 1
-# IDs to be ignored
-ignoredIDs:
-  - "Test"
+old_logs: 1
 # Enable usb checking
 usb_tracking: false
+# IDs to be ignored
+usb_ignored_ids:
+  - "Test"
 # Enable ping checking
 ping_tracking: false
+# Targets to ping
+ping_targets:
+  - target: "127.0.0.1" # Target to ping
+    ping_timeout: 1s # Duration for ping to be identified as failed if no response in received
+    on_success: false # Set true if commands shall be executed on successful ping
+    retry_count: 3 # Number of retries if ping fails before command execution
+    retry_delay: 100ms # Time to wait between retries
 # Enable web checking
 web_tracking: false
+# Targets to curl
+web_targets:
+  - target: "https://example.com" # Target to curl
+    content: "Test" # Content to look for
+    content_is_exact: false # Set true to execute command if responses body is identical to content. false if content is meant to be a substring.
+    status_code: 200 # Http status code to look for
+    on_code_identical: false # Set true to execute commands if received status code is same as configured status code
+    on_https_fails: false # Set true to execute commands if response is received without encryption
+    retry_count: 3 # Number of retries if curl fails before command execution
+    retry_delay: 500ms # Time to wait between retires
 # Commands to be executed
 commands:
   - command: "shutdown" # Command
@@ -31,20 +50,3 @@ commands:
     usb: false # Set true to execute command on usb changes
     ping: false # Set true to execute command on ping tracking
     web: false # Set true to execute command on web tracking
-# Targets to ping
-pingConfig:
-  - target: "127.0.0.1" # Target to ping
-    ping_timeout: 1s # Duration for ping to be identified as failed if no response in received
-    on_success: false # Set true if commands shall be executed on successful ping
-    retry_count: 3 # Number of retries if ping fails before command execution
-    retry_delay: 100ms # Time to wait between retries
-# Targets to curl
-webConfig:
-  - target: "https://example.com" # Target to curl
-    content: "Test" # Content to look for
-    content_is_exact: false # Set true to execute command if responses body is identical to content. false if content is meant to be a substring.
-    status_code: 200 # Http status code to look for
-    on_code_identical: false # Set true to execute commands if received status code is same as configured status code
-    on_https_fails: false # Set true to execute commands if response is received without encryption
-    retry_count: 3 # Number of retries if curl fails before command execution
-    retry_delay: 500ms # Time to wait between retires

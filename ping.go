@@ -21,19 +21,19 @@ func (p *PingTracker) TrackPingTargets(noExec, debug bool) {
 }
 
 // ping executes the ping and decides for executions calls. Meant to be executed async.
-func (p *PingTracker) ping(noExec, debug bool, pingConfig *PingConfig) {
-	pinger, err := probing.NewPinger(pingConfig.Target)
+func (p *PingTracker) ping(noExec, debug bool, pingTargets *PingTarget) {
+	pinger, err := probing.NewPinger(pingTargets.Target)
 	if err != nil {
 		p.Config.log(err.Error())
 		p.Config.exec(CalleePing, noExec)
 		return
 	}
 	pinger.Count = 1
-	pinger.Timeout = pingConfig.PingTimeout
+	pinger.Timeout = pingTargets.PingTimeout
 
-	for i := 0; i < pingConfig.RetryCount; i++ {
+	for i := 0; i < pingTargets.RetryCount; i++ {
 		if debug && i > 0 {
-			p.Config.log("Retrying: " + pingConfig.Target)
+			p.Config.log("Retrying: " + pingTargets.Target)
 		}
 
 		err = pinger.Run()
@@ -44,10 +44,10 @@ func (p *PingTracker) ping(noExec, debug bool, pingConfig *PingConfig) {
 		success := pinger.Statistics().PacketsRecv > 0
 
 		// Check for Config
-		if pingConfig.OnSuccess {
+		if pingTargets.OnSuccess {
 			// If ping returns -> execute. Else return
 			if success {
-				p.Config.log("Ping successful. Execution started due to OnSuccess for " + pingConfig.Target)
+				p.Config.log("Ping successful. Execution started due to OnSuccess for " + pingTargets.Target)
 				p.Config.exec(CalleePing, noExec)
 			}
 			return
@@ -57,11 +57,11 @@ func (p *PingTracker) ping(noExec, debug bool, pingConfig *PingConfig) {
 				return
 			}
 			if debug {
-				p.Config.log("Pinging failed for: " + pingConfig.Target)
+				p.Config.log("Pinging failed for: " + pingTargets.Target)
 			}
 		}
 		// Wait
-		time.Sleep(pingConfig.RetryDelay)
+		time.Sleep(pingTargets.RetryDelay)
 	}
 	p.Config.exec(CalleePing, noExec)
 }

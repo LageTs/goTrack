@@ -10,15 +10,16 @@ import (
 )
 
 const defaultConfigPath = "/etc/goTrack.yaml"
+const version = "1.2"
 
 func main() {
 	// Define command-line flags
-	intervalFlag := pflag.DurationP("interval", "i", time.Duration(0), "Interval for polling USB devices")
+	intervalFlag := pflag.DurationP("interval", "i", time.Duration(0), "Interval for tracking")
 	debugFlag := pflag.BoolP("debug", "d", false, "Debug mode: Print debugging notes")
 	verboseFlag := pflag.BoolP("verbose", "x", false, "Print state at start")
 	noExecFlag := pflag.BoolP("noExec", "n", false, "Do not execute on device detection")
 	helpFlag := pflag.BoolP("help", "h", false, "Show help text")
-	commandFlag := pflag.StringP("command", "c", "", "Command (chain) to be executed on device change detection")
+	commandFlag := pflag.StringP("command", "c", "", "Command (chain) to be executed")
 	commandArgFlag := pflag.StringP("arguments", "a", "", "Command arguments")
 	configPathFlag := pflag.StringP("configPath", "p", "", "Path to config")
 	versionFlag := pflag.BoolP("version", "v", false, "Print version text")
@@ -34,7 +35,7 @@ func main() {
 
 	// Show version text
 	if *versionFlag {
-		fmt.Println("Version: goTrack 1.1")
+		fmt.Println("Version: goTrack " + version)
 		return
 	}
 
