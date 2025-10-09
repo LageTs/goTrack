@@ -34,12 +34,18 @@ func (p *PingTracker) ping(noExec, debug bool, pingTarget *PingTarget) uint8 {
 	pinger, err := probing.NewPinger(pingTarget.Target)
 	if err != nil {
 		p.Config.log(err.Error())
-		p.Config.exec(CalleePing, pingTarget.CommandId, noExec)
+		if p.Config.ExecOnError {
+			p.Config.exec(CalleePing, pingTarget.CommandId, noExec)
+			return PingExec
+		}
 		return PingErr
 	}
 	if pingTarget.PingTimeout == 0 {
 		p.Config.log("Timeout must be greater than zero")
-		p.Config.exec(CalleePing, pingTarget.CommandId, noExec)
+		if p.Config.ExecOnError {
+			p.Config.exec(CalleePing, pingTarget.CommandId, noExec)
+			return PingExec
+		}
 		return PingTimeoutErr
 	}
 	pinger.Count = 1
@@ -53,7 +59,10 @@ func (p *PingTracker) ping(noExec, debug bool, pingTarget *PingTarget) uint8 {
 		err = pinger.Run()
 		if err != nil {
 			p.Config.log(err.Error())
-			p.Config.exec(CalleePing, pingTarget.CommandId, noExec)
+			if p.Config.ExecOnError {
+				p.Config.exec(CalleePing, pingTarget.CommandId, noExec)
+				return PingExec
+			}
 			return PingErr
 		}
 		success := pinger.Statistics().PacketsRecv > 0

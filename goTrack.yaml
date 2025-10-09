@@ -1,6 +1,6 @@
 # Config for goTrack. Shall be placed in /etc/ as goTrack.yaml
 # Version of this config file
-config_version: 1.5
+config_version: 1.6
 # Shall the file lock be used? If activated commands will only be executed if the file doesn't exist.
 file_lock: true
 # File to be checked for file lock
@@ -13,6 +13,8 @@ start_delay: 3s
 log_file: "/var/log/goTrack.log"
 # Number of old log files to keep: 1 keeps current and last, 0 keeps current
 old_logs: 1
+# If true, in case of a handled unexpected error in tracking (like missing permissions), command execution will be started with callee of error source
+execution_on_error: true
 # Enable usb checking
 usb_tracking: false
 # Interval between checks

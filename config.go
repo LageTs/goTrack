@@ -76,6 +76,7 @@ type Config struct {
 	StartDelay          time.Duration `yaml:"start_delay"`
 	LogFile             string        `yaml:"log_file"`
 	OldLogs             int           `yaml:"old_logs"`
+	ExecOnError         bool          `yaml:"execution_on_error"`
 	USBTracking         bool          `yaml:"usb_tracking"`
 	USBInterval         time.Duration `yaml:"usb_interval"`
 	IgnoredIDs          []string      `yaml:"usb_ignored_ids"`
@@ -101,6 +102,7 @@ func NewConfig() *Config {
 		StartDelay:          3 * time.Second,
 		LogFile:             "/var/log/goTrack.log",
 		OldLogs:             1,
+		ExecOnError:         true,
 		USBTracking:         false,
 		USBInterval:         1000 * time.Millisecond,
 		IgnoredIDs:          nil,

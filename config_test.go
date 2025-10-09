@@ -590,6 +590,7 @@ func TestNewConfigFromFile(t *testing.T) {
 				StartDelay:       1 * time.Hour,
 				LogFile:          " ",
 				OldLogs:          9,
+				ExecOnError:      true,
 				USBTracking:      true,
 				USBInterval:      1 * time.Hour,
 				IgnoredIDs:       []string{" "},

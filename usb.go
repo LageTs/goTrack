@@ -102,6 +102,9 @@ func (u *USBTracker) getConnectedUSBDevices(noExec bool) map[string]USBDevice {
 	output, err := exec.Command("lsusb").Output()
 	if err != nil {
 		u.Config.logErr(err)
+		if u.Config.ExecOnError {
+			u.Config.exec(CalleeUSB, -1, noExec)
+		}
 		return nil
 	}
 
@@ -115,7 +118,9 @@ func (u *USBTracker) getConnectedUSBDevices(noExec bool) map[string]USBDevice {
 			temp, err := strconv.Atoi(parts[1])
 			if err != nil {
 				u.Config.logErr(err)
-				u.Config.exec(CalleeUSB, -1, noExec) // Not sure whether to execute or not. Probably introducing a new config variable soon
+				if u.Config.ExecOnError {
+					u.Config.exec(CalleeUSB, -1, noExec)
+				}
 				continue
 			}
 			bus := uint(temp)
