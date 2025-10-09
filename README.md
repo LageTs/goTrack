@@ -51,9 +51,11 @@ usb_ignored_ids:
 ```
 
 ## Version
-1.3
+1.4
 
 ### Change log
+#### V1.4
+Added basic testing for development.
 #### V1.3
 Independent intervals for all trackers.
 #### V1.2
@@ -65,5 +67,7 @@ Initial release
 
 ## Future Work
 In the future this project can be extended with the ability to check:
+- Add config variable for execution on error
+- Command programming: Have custom commands per tracking target
 - Events: React to events like shortcuts
 - (optional) Timer: React if some timings are reached (period, time stamp)

@@ -1,0 +1,38 @@
+config_version: 0.0
+file_lock: true
+file_lock_path: " "
+file_lock_deletion: true
+start_delay: 1h
+log_file: " "
+old_logs: 9
+usb_tracking: true
+usb_interval: 1h
+usb_ignored_ids:
+  - " "
+ping_tracking: true
+ping_interval: 1h
+ping_targets:
+  - target: " "
+    ping_timeout: 1h
+    on_success: true
+    retry_count: 9
+    retry_delay: 1h
+web_tracking: true
+web_interval: 1h
+web_targets:
+  - target: " "
+    content: " "
+    content_is_exact: true
+    status_code: 9
+    on_code_identical: true
+    on_https_fails: true
+    retry_count: 9
+    retry_delay: 1h
+commands:
+  - command: " "
+    args:
+      - " "
+    late: true
+    usb: true
+    ping: true
+    web: true

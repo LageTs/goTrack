@@ -8,60 +8,78 @@ type PingTracker struct {
 	Config *Config
 }
 
+const PingSuc uint8 = 0
+const PingNoSuc uint8 = 1
+const PingExec uint8 = 2
+const PingErr uint8 = 3
+const PingTimeoutErr uint8 = 4
+
 // NewPingTracker returns a new PingTracker with given Config
 func NewPingTracker(config *Config) *PingTracker {
 	return &PingTracker{Config: config}
 }
 
 // TrackPingTargets tracks ping targets. Meant to be executed periodically. Starts async pings for each config.
-func (p *PingTracker) TrackPingTargets(noExec, debug bool) {
+func (p *PingTracker) TrackPingTargets(noExec, debug bool) uint {
+	var counter uint = 0
 	for _, config := range p.Config.PingTrackingConfigs {
 		go p.ping(noExec, debug, &config)
+		counter++
 	}
+	return counter
 }
 
 // ping executes the ping and decides for executions calls. Meant to be executed async.
-func (p *PingTracker) ping(noExec, debug bool, pingTargets *PingTarget) {
-	pinger, err := probing.NewPinger(pingTargets.Target)
+func (p *PingTracker) ping(noExec, debug bool, pingTarget *PingTarget) uint8 {
+	pinger, err := probing.NewPinger(pingTarget.Target)
 	if err != nil {
 		p.Config.log(err.Error())
 		p.Config.exec(CalleePing, noExec)
-		return
+		return PingErr
+	}
+	if pingTarget.PingTimeout == 0 {
+		p.Config.log("Timeout must be greater than zero")
+		p.Config.exec(CalleePing, noExec)
+		return PingTimeoutErr
 	}
 	pinger.Count = 1
-	pinger.Timeout = pingTargets.PingTimeout
+	pinger.Timeout = pingTarget.PingTimeout
 
-	for i := 0; i < pingTargets.RetryCount; i++ {
+	for i := 0; i <= pingTarget.RetryCount; i++ {
 		if debug && i > 0 {
-			p.Config.log("Retrying: " + pingTargets.Target)
+			p.Config.log("Retrying: " + pingTarget.Target)
 		}
 
 		err = pinger.Run()
 		if err != nil {
 			p.Config.log(err.Error())
 			p.Config.exec(CalleePing, noExec)
+			return PingErr
 		}
 		success := pinger.Statistics().PacketsRecv > 0
 
 		// Check for Config
-		if pingTargets.OnSuccess {
+		if pingTarget.OnSuccess {
 			// If ping returns -> execute. Else return
 			if success {
-				p.Config.log("Ping successful. Execution started due to OnSuccess for " + pingTargets.Target)
+				p.Config.log("Ping successful. Execution started due to OnSuccess for " + pingTarget.Target)
 				p.Config.exec(CalleePing, noExec)
+				return PingExec
 			}
-			return
+			return PingNoSuc
 		} else {
 			// If ping fails -> retry. Else return
 			if success {
-				return
+				return PingSuc
 			}
 			if debug {
-				p.Config.log("Pinging failed for: " + pingTargets.Target)
+				p.Config.log("Pinging failed for: " + pingTarget.Target)
 			}
 		}
 		// Wait
-		time.Sleep(pingTargets.RetryDelay)
+		time.Sleep(pingTarget.RetryDelay)
 	}
+	p.Config.log("Ping unsuccessful after maximum retries. Execution started due failure for " + pingTarget.Target)
 	p.Config.exec(CalleePing, noExec)
+	return PingExec
 }

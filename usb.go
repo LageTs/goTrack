@@ -11,7 +11,7 @@ import (
 type USBDevice struct {
 	ID       string
 	Name     string
-	BusCount map[string]uint8
+	BusCount map[uint]uint
 }
 
 // USBTracker represents the USB tracking service
@@ -29,11 +29,11 @@ func NewUSBTracker(config *Config) *USBTracker {
 
 // InitUSBDevices initializes the USB devices list
 func (u *USBTracker) InitUSBDevices(verbose bool) {
-	u.cachedDevices = u.getConnectedUSBDevices()
+	u.cachedDevices = u.getConnectedUSBDevices(true)
 	if verbose {
 		fmt.Println("Connected at start:\nID\t\t\tCount\tName")
 		for id, device := range u.cachedDevices {
-			sum := uint8(0)
+			sum := uint(0)
 			for _, count := range device.BusCount {
 				sum += count
 			}
@@ -46,7 +46,7 @@ func (u *USBTracker) InitUSBDevices(verbose bool) {
 // TrackUSBDevices tracks connected USB devices. Meant to be executed periodically
 func (u *USBTracker) TrackUSBDevices(noExec, debug bool) {
 	// Get list of currently connected USB devices
-	currentDevices := u.getConnectedUSBDevices()
+	currentDevices := u.getConnectedUSBDevices(noExec)
 
 	// Check for new devices
 	for id, device := range currentDevices {
@@ -98,7 +98,7 @@ func (u *USBTracker) TrackUSBDevices(noExec, debug bool) {
 }
 
 // getConnectedUSBDevices retrieves currently connected USB devices
-func (u *USBTracker) getConnectedUSBDevices() map[string]USBDevice {
+func (u *USBTracker) getConnectedUSBDevices(noExec bool) map[string]USBDevice {
 	output, err := exec.Command("lsusb").Output()
 	if err != nil {
 		u.Config.logErr(err)
@@ -112,16 +112,22 @@ func (u *USBTracker) getConnectedUSBDevices() map[string]USBDevice {
 		parts := strings.Fields(line)
 		if len(parts) >= 6 {
 			id := parts[5]
-			bus := parts[1]
+			temp, err := strconv.Atoi(parts[1])
+			if err != nil {
+				u.Config.logErr(err)
+				u.Config.exec(CalleeUSB, noExec) // Not sure whether to execute or not. Probably introducing a new config variable soon
+				continue
+			}
+			bus := uint(temp)
 			name := combineFields(parts, 6)
-			if u, ok := devices[id]; ok {
-				if _, ok := u.BusCount[bus]; ok {
+			if uID, ok := devices[id]; ok {
+				if _, ok := uID.BusCount[bus]; ok {
 					devices[id].BusCount[bus] += 1
 				} else {
 					devices[id].BusCount[bus] = 1
 				}
 			} else {
-				m := make(map[string]uint8)
+				m := make(map[uint]uint)
 				m[bus] = 1
 				devices[id] = USBDevice{ID: id, Name: name, BusCount: m}
 			}
@@ -141,6 +147,7 @@ func (u *USBTracker) deviceIDExists(id string) bool {
 	return exists
 }
 
+// isBusCountEqual checks if the occurrence of an ID is on the same count per bus
 func (u *USBDevice) isBusCountEqual(u2 USBDevice) bool {
 	if len(u.BusCount) != len(u2.BusCount) {
 		return false
@@ -153,8 +160,9 @@ func (u *USBDevice) isBusCountEqual(u2 USBDevice) bool {
 	return true
 }
 
-func (u *USBDevice) getBusSum() uint8 {
-	busSum := uint8(0)
+// getBusSum returns the sum of all devices with same ID on all buses
+func (u *USBDevice) getBusSum() uint {
+	busSum := uint(0)
 	for _, c := range u.BusCount {
 		busSum += c
 	}

@@ -20,51 +20,68 @@ type WebTracker struct {
 	Config *Config
 }
 
+const WebNoExec uint8 = 0
+const WebCont uint8 = 1
+const WebContExact uint8 = 2
+const WebCode uint8 = 3
+const WebNotCode uint8 = 4
+const WebHTTPS uint8 = 5
+
 // NewWebTracker returns a new WebTracker with given Config
 func NewWebTracker(config *Config) *WebTracker {
 	return &WebTracker{Config: config}
 }
 
 // TrackWebSources starts async tracking for Web Pages
-func (w *WebTracker) TrackWebSources(noExec, debug bool) {
+func (w *WebTracker) TrackWebSources(noExec, debug bool) uint {
+	var counter uint = 0
 	for _, config := range w.Config.WebTrackingConfigs {
 		go w.trackWebSource(noExec, debug, config)
+		counter++
 	}
+	return counter
 }
 
 // trackWebSource tracks web sources. Meant to be executed periodically
-func (w *WebTracker) trackWebSource(noExec, debug bool, config WebTarget) {
+func (w *WebTracker) trackWebSource(noExec, debug bool, config WebTarget) uint8 {
 	if debug {
 		w.Config.log("Web curl for: " + config.Target)
 	}
 	wC := w.curl(debug, config)
 
-	var execFlag = false
+	returnValue := WebNoExec
 	// Check for Status Code
 	if config.StatusCode != 0 {
-		if config.OnCodeIdentical {
-			execFlag = wC.status == config.StatusCode
-		} else {
-			execFlag = wC.status != config.StatusCode
+		if config.OnCodeIdentical && wC.status == config.StatusCode {
+			returnValue = WebCode
+		} else if wC.status != config.StatusCode {
+			returnValue = WebNotCode
 		}
 	}
 	// Check for HTTPS failure
-	execFlag = execFlag || (!wC.isHttps && config.OnHTTPSFails)
+	if !wC.isHttps && config.OnHTTPSFails {
+		returnValue = WebHTTPS
+	}
 	// Check for Content match
 	if len(config.Content) > 0 {
 		if config.ContentIsExact {
 			// Check for identity
-			execFlag = execFlag || (strings.Contains(wC.content, config.Content) && len(wC.content) == len(config.Content))
+			if strings.Contains(wC.content, config.Content) && len(wC.content) == len(config.Content) {
+				returnValue = WebContExact
+			}
 		} else {
 			// Check for substring
-			execFlag = execFlag || strings.Contains(wC.content, config.Content)
+			if strings.Contains(wC.content, config.Content) {
+				returnValue = WebCont
+			}
 		}
 	}
 
-	if execFlag {
+	if returnValue != WebNoExec {
 		w.Config.log("Executing on web tracking for: " + config.Target)
 		w.Config.exec(CalleeWeb, noExec)
 	}
+	return returnValue
 }
 
 func (w *WebTracker) curl(debug bool, config WebTarget) webCurl {
@@ -74,7 +91,7 @@ func (w *WebTracker) curl(debug bool, config WebTarget) webCurl {
 		isHttps: false,
 	}
 
-	for i := 0; i < config.RetryCount; i++ {
+	for i := 0; i <= config.RetryCount; i++ {
 		response, err := http.Get(config.Target)
 		if err != nil {
 			w.Config.log(err.Error())
@@ -103,6 +120,7 @@ func (w *WebTracker) readBody(response *http.Response) string {
 	}(response.Body, w.Config)
 	bodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
+		w.Config.log(err.Error())
 		return ""
 	}
 	return string(bodyBytes)

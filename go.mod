@@ -1,6 +1,6 @@
 module goTrack
 
-go 1.22
+go 1.25
 
 require (
 	github.com/prometheus-community/pro-bing v0.4.1

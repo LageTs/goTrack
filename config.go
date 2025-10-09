@@ -13,6 +13,10 @@ import (
 const CalleeUSB uint8 = 1
 const CalleePing uint8 = 2
 const CalleeWeb uint8 = 3
+const ExecSuc uint8 = 0
+const ExecErr uint8 = 1
+const NoExec uint8 = 2
+const FileLock uint8 = 3
 
 // WebTarget represents the configuration struct for web content to be tracked.
 type WebTarget struct {
@@ -117,7 +121,7 @@ func NewConfigFromFile(filename string) (*Config, error) {
 		}
 	}(file)
 
-	config := &Config{}
+	config := NewConfig()
 	decoder := yaml.NewDecoder(file)
 	if err := decoder.Decode(config); err != nil {
 		return nil, err
@@ -127,53 +131,64 @@ func NewConfigFromFile(filename string) (*Config, error) {
 }
 
 // commandExecution runs any given command without any validation
-func (c Config) commandExecution(command Command) {
+func (c Config) commandExecution(command Command) uint8 {
 	output, err := exec.Command(command.Command, command.Args...).Output()
 	c.log(string(output))
 	if err != nil {
 		c.logErr(err)
+		return ExecErr
 	}
+	return ExecSuc
 }
 
 // exec executes all commands that are enabled for the callee
-func (c Config) exec(callee uint8, noExec bool) {
+func (c Config) exec(callee uint8, noExec bool) (uint8, bool) {
 	// If noExec is set nothing will be executed
 	if noExec {
 		c.log("Execution aborted due to \"NoExec\"")
-	} else if !c.FileLock || c.FileLock && !fileExists(c.FileLockPath) {
+		return NoExec, false
+	} else if c.FileLock && fileExists(c.FileLockPath) {
+		c.log("Execution skipped as file lock is activated and present")
+		return FileLock, false
+	} else {
 		// Execution will be started
 		// lateCommands holds all commands that shall be executed after others
 		var lateCommands []Command
+		executed := NoExec
 		for _, command := range c.Commands {
 			if command.USB && callee == CalleeUSB {
 				if command.Late {
 					lateCommands = append(lateCommands, command)
 					continue
 				}
-				c.commandExecution(command)
+				executed = consume(executed, c.commandExecution(command))
 
 			} else if command.Ping && callee == CalleePing {
 				if command.Late {
 					lateCommands = append(lateCommands, command)
 					continue
 				}
-				c.commandExecution(command)
+				executed = consume(executed, c.commandExecution(command))
 
 			} else if command.Web && callee == CalleeWeb {
 				if command.Late {
 					lateCommands = append(lateCommands, command)
 					continue
 				}
-				c.commandExecution(command)
+				executed = consume(executed, c.commandExecution(command))
 			}
 
 		}
 		// Execute late commands
+		late := false
 		for _, command := range lateCommands {
-			c.commandExecution(command)
+			temp := c.commandExecution(command)
+			executed = consume(executed, temp)
+			if temp == ExecSuc {
+				late = true
+			}
 		}
-	} else {
-		c.log("Execution skipped as file lock is activated and present")
+		return executed, late
 	}
 }
 
@@ -253,10 +268,20 @@ func (c Config) deleteFileIfExisting(path string) {
 	}
 }
 
-// createPath creates als dirs that are part of the given path
+// createPath creates all dirs that are part of the given path
 func createPath(path string) {
-	err := os.MkdirAll(filepath.Dir(path), 0600)
+	err := os.MkdirAll(filepath.Dir(path), 0700)
 	if err != nil {
 		println("File error: ", err)
 	}
+}
+
+func consume(u, v uint8) uint8 {
+	if u == NoExec {
+		return v
+	}
+	if u == ExecErr || v == ExecErr {
+		return ExecErr
+	}
+	return ExecSuc
 }
