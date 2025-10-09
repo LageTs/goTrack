@@ -1,6 +1,6 @@
 # Config for goTrack. Shall be placed in /etc/ as goTrack.yaml
 # Version of this config file
-config_version: 1.3
+config_version: 1.5
 # Shall the file lock be used? If activated commands will only be executed if the file doesn't exist.
 file_lock: true
 # File to be checked for file lock
@@ -31,6 +31,7 @@ ping_targets:
     on_success: false # Set true if commands shall be executed on successful ping
     retry_count: 3 # Number of retries if ping fails before command execution
     retry_delay: 100ms # Time to wait between retries
+    command_id: -1 # ID for command binding, ignored unless commands are set up for ids
 # Enable web checking
 web_tracking: false
 # Interval between checks
@@ -45,6 +46,7 @@ web_targets:
     on_https_fails: false # Set true to execute commands if response is received without encryption
     retry_count: 3 # Number of retries if curl fails before command execution
     retry_delay: 500ms # Time to wait between retires
+    command_id: -1 # ID for command binding, ignored unless commands are set up for ids
 # Commands to be executed
 commands:
   - command: "shutdown" # Command
@@ -54,3 +56,5 @@ commands:
     usb: false # Set true to execute command on usb changes
     ping: false # Set true to execute command on ping tracking
     web: false # Set true to execute command on web tracking
+    # command_id can also be seen as "only execute in combination with this id"
+    command_id: -1 # If set to -1 this will be executed regardless of triggering target, if greater than -1 it will only be executed if triggering target has this command_id

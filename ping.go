@@ -34,12 +34,12 @@ func (p *PingTracker) ping(noExec, debug bool, pingTarget *PingTarget) uint8 {
 	pinger, err := probing.NewPinger(pingTarget.Target)
 	if err != nil {
 		p.Config.log(err.Error())
-		p.Config.exec(CalleePing, noExec)
+		p.Config.exec(CalleePing, pingTarget.CommandId, noExec)
 		return PingErr
 	}
 	if pingTarget.PingTimeout == 0 {
 		p.Config.log("Timeout must be greater than zero")
-		p.Config.exec(CalleePing, noExec)
+		p.Config.exec(CalleePing, pingTarget.CommandId, noExec)
 		return PingTimeoutErr
 	}
 	pinger.Count = 1
@@ -53,7 +53,7 @@ func (p *PingTracker) ping(noExec, debug bool, pingTarget *PingTarget) uint8 {
 		err = pinger.Run()
 		if err != nil {
 			p.Config.log(err.Error())
-			p.Config.exec(CalleePing, noExec)
+			p.Config.exec(CalleePing, pingTarget.CommandId, noExec)
 			return PingErr
 		}
 		success := pinger.Statistics().PacketsRecv > 0
@@ -63,7 +63,7 @@ func (p *PingTracker) ping(noExec, debug bool, pingTarget *PingTarget) uint8 {
 			// If ping returns -> execute. Else return
 			if success {
 				p.Config.log("Ping successful. Execution started due to OnSuccess for " + pingTarget.Target)
-				p.Config.exec(CalleePing, noExec)
+				p.Config.exec(CalleePing, pingTarget.CommandId, noExec)
 				return PingExec
 			}
 			return PingNoSuc
@@ -80,6 +80,6 @@ func (p *PingTracker) ping(noExec, debug bool, pingTarget *PingTarget) uint8 {
 		time.Sleep(pingTarget.RetryDelay)
 	}
 	p.Config.log("Ping unsuccessful after maximum retries. Execution started due failure for " + pingTarget.Target)
-	p.Config.exec(CalleePing, noExec)
+	p.Config.exec(CalleePing, pingTarget.CommandId, noExec)
 	return PingExec
 }

@@ -55,7 +55,7 @@ func (u *USBTracker) TrackUSBDevices(noExec, debug bool) {
 			if !u.deviceIDIgnored(id) {
 				// ID not ignored -> execute commands
 				u.Config.log("New ID: " + id + " Name: " + device.Name)
-				u.Config.exec(CalleeUSB, noExec)
+				u.Config.exec(CalleeUSB, -1, noExec)
 			} else if debug {
 				u.Config.log("New device from ignored IDs: " + id + " Name: " + device.Name)
 			}
@@ -71,7 +71,7 @@ func (u *USBTracker) TrackUSBDevices(noExec, debug bool) {
 					cacheDevice := u.cachedDevices[id]
 					u.Config.log("Device count differs for ID: " + id + " Name: " + device.Name)
 					u.Config.log("Old count: " + strconv.Itoa(int(cacheDevice.getBusSum())) + " | New Count: " + strconv.Itoa(int(device.getBusSum())))
-					u.Config.exec(CalleeUSB, noExec)
+					u.Config.exec(CalleeUSB, -1, noExec)
 				} else if debug {
 					u.Config.log("Device count differs for ignored ID: " + id + " Name: " + device.Name)
 				}
@@ -85,7 +85,7 @@ func (u *USBTracker) TrackUSBDevices(noExec, debug bool) {
 		if deviceIDMissing(currentDevices, id) {
 			if !u.deviceIDIgnored(id) {
 				u.Config.log("Old missing ID: " + id + " Name: " + device.Name)
-				u.Config.exec(CalleeUSB, noExec)
+				u.Config.exec(CalleeUSB, -1, noExec)
 			} else {
 				if debug {
 					u.Config.log("Ignored missing device ID: " + id + " Name: " + device.Name)
@@ -115,7 +115,7 @@ func (u *USBTracker) getConnectedUSBDevices(noExec bool) map[string]USBDevice {
 			temp, err := strconv.Atoi(parts[1])
 			if err != nil {
 				u.Config.logErr(err)
-				u.Config.exec(CalleeUSB, noExec) // Not sure whether to execute or not. Probably introducing a new config variable soon
+				u.Config.exec(CalleeUSB, -1, noExec) // Not sure whether to execute or not. Probably introducing a new config variable soon
 				continue
 			}
 			bus := uint(temp)

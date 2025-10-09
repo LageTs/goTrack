@@ -175,21 +175,26 @@ func TestConfig_deleteFileIfExisting(t *testing.T) {
 }
 
 func TestConfig_exec(t *testing.T) {
-	lsAllCommand := Command{Command: "ls", Args: nil, Late: false, USB: true, Ping: true, Web: true}
-	lsUSBCommand := Command{Command: "ls", Args: nil, Late: false, USB: true, Ping: false, Web: false}
-	lsPingCommand := Command{Command: "ls", Args: nil, Late: false, USB: false, Ping: true, Web: false}
-	lsWebCommand := Command{Command: "ls", Args: nil, Late: false, USB: false, Ping: false, Web: true}
-	lsLateUSBCommand := Command{Command: "ls", Args: nil, Late: true, USB: true, Ping: false, Web: false}
-	lsLatePingCommand := Command{Command: "ls", Args: nil, Late: true, USB: false, Ping: true, Web: false}
-	lsLateWebCommand := Command{Command: "ls", Args: nil, Late: true, USB: false, Ping: false, Web: true}
+	lsAllCommand := Command{Command: "ls", Args: nil, Late: false, USB: true, Ping: true, Web: true, Id: -1}
+	lsUSBCommand := Command{Command: "ls", Args: nil, Late: false, USB: true, Ping: false, Web: false, Id: -1}
+	lsPingCommand := Command{Command: "ls", Args: nil, Late: false, USB: false, Ping: true, Web: false, Id: -1}
+	lsWebCommand := Command{Command: "ls", Args: nil, Late: false, USB: false, Ping: false, Web: true, Id: -1}
+	lsAllCommandId := Command{Command: "ls", Args: nil, Late: false, USB: true, Ping: true, Web: true, Id: 1}
+	lsUSBCommandId := Command{Command: "ls", Args: nil, Late: false, USB: true, Ping: false, Web: false, Id: 2}
+	lsPingCommandId := Command{Command: "ls", Args: nil, Late: false, USB: false, Ping: true, Web: false, Id: 3}
+	lsWebCommandId := Command{Command: "ls", Args: nil, Late: false, USB: false, Ping: false, Web: true, Id: 4}
+	lsLateUSBCommand := Command{Command: "ls", Args: nil, Late: true, USB: true, Ping: false, Web: false, Id: -1}
+	lsLatePingCommand := Command{Command: "ls", Args: nil, Late: true, USB: false, Ping: true, Web: false, Id: -1}
+	lsLateWebCommand := Command{Command: "ls", Args: nil, Late: true, USB: false, Ping: false, Web: true, Id: -1}
 	type fields struct {
 		FileLock        bool
 		FileLockPresent bool
 		Commands        []Command
 	}
 	type args struct {
-		callee uint8
-		noExec bool
+		callee    uint8
+		noExec    bool
+		commandId int
 	}
 	tests := []struct {
 		name   string
@@ -200,7 +205,7 @@ func TestConfig_exec(t *testing.T) {
 	}{
 		{
 			name: "NoExec active, Ping, FileLock present",
-			args: args{callee: CalleePing, noExec: true},
+			args: args{callee: CalleePing, commandId: -1, noExec: true},
 			fields: fields{
 				FileLock:        true,
 				FileLockPresent: true,
@@ -210,139 +215,223 @@ func TestConfig_exec(t *testing.T) {
 		},
 		{
 			name:   "NoExec active, Web, FileLock not present",
-			args:   args{callee: CalleeWeb, noExec: true},
+			args:   args{callee: CalleeWeb, commandId: -1, noExec: true},
 			fields: fields{FileLock: true, FileLockPresent: false, Commands: []Command{lsAllCommand}},
 			want:   NoExec,
 			late:   false,
 		},
 		{
 			name:   "NoExec active, USB",
-			args:   args{callee: CalleeUSB, noExec: true},
+			args:   args{callee: CalleeUSB, commandId: -1, noExec: true},
 			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsAllCommand}},
 			want:   NoExec,
 			late:   false,
 		},
 		{
 			name:   "FileLock, present, USB",
-			args:   args{callee: CalleeUSB, noExec: false},
+			args:   args{callee: CalleeUSB, commandId: -1, noExec: false},
 			fields: fields{FileLock: true, FileLockPresent: true, Commands: []Command{lsAllCommand}},
 			want:   FileLock,
 			late:   false,
 		},
 		{
 			name:   "FileLock, present, Web",
-			args:   args{callee: CalleeWeb, noExec: false},
+			args:   args{callee: CalleeWeb, commandId: -1, noExec: false},
 			fields: fields{FileLock: true, FileLockPresent: true, Commands: []Command{lsAllCommand}},
 			want:   FileLock,
 			late:   false,
 		},
 		{
 			name:   "FileLock, present, Ping",
-			args:   args{callee: CalleePing, noExec: false},
+			args:   args{callee: CalleePing, commandId: -1, noExec: false},
 			fields: fields{FileLock: true, FileLockPresent: true, Commands: []Command{lsAllCommand}},
 			want:   FileLock,
 			late:   false,
 		},
 		{
 			name:   "FileLock, not present",
-			args:   args{callee: CalleeUSB, noExec: false},
+			args:   args{callee: CalleeUSB, commandId: -1, noExec: false},
 			fields: fields{FileLock: true, FileLockPresent: false, Commands: []Command{lsAllCommand}},
 			want:   ExecSuc,
 			late:   false,
 		},
 		{
 			name:   "no FileLock, but present",
-			args:   args{callee: CalleePing, noExec: false},
+			args:   args{callee: CalleePing, commandId: -1, noExec: false},
 			fields: fields{FileLock: false, FileLockPresent: true, Commands: []Command{lsAllCommand}},
 			want:   ExecSuc,
 			late:   false,
 		},
 		{
 			name:   "no FileLock, not present",
-			args:   args{callee: CalleeWeb, noExec: false},
+			args:   args{callee: CalleeWeb, commandId: -1, noExec: false},
 			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsAllCommand}},
 			want:   ExecSuc,
 			late:   false,
 		},
 		{
+			name:   "no FileLock, not present, Id, Web",
+			args:   args{callee: CalleeWeb, commandId: 1, noExec: false},
+			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsAllCommandId}},
+			want:   ExecSuc,
+			late:   false,
+		},
+		{
+			name:   "no FileLock, not present, failed Id, Web",
+			args:   args{callee: CalleeWeb, commandId: 11, noExec: false},
+			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsAllCommandId}},
+			want:   NoExec,
+			late:   false,
+		},
+		{
+			name:   "no FileLock, not present, failed Id, USB",
+			args:   args{callee: CalleeUSB, commandId: 1, noExec: false},
+			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsAllCommandId}},
+			want:   ExecSuc,
+			late:   false,
+		},
+		{
+			name:   "no FileLock, not present, failed Id, USB",
+			args:   args{callee: CalleeUSB, commandId: 2, noExec: false},
+			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsAllCommandId}},
+			want:   NoExec,
+			late:   false,
+		},
+		{
+			name:   "no FileLock, not present, failed Id, Ping",
+			args:   args{callee: CalleePing, commandId: 1, noExec: false},
+			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsAllCommandId}},
+			want:   ExecSuc,
+			late:   false,
+		},
+		{
+			name:   "no FileLock, not present, failed Id, Ping",
+			args:   args{callee: CalleePing, commandId: 3, noExec: false},
+			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsAllCommandId}},
+			want:   NoExec,
+			late:   false,
+		},
+		{
 			name:   "Execution, USB",
-			args:   args{callee: CalleeUSB, noExec: false},
+			args:   args{callee: CalleeUSB, commandId: -1, noExec: false},
 			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsUSBCommand}},
 			want:   ExecSuc,
 			late:   false,
 		},
 		{
+			name:   "Execution, USB with ID",
+			args:   args{callee: CalleeUSB, commandId: 2, noExec: false},
+			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsUSBCommandId}},
+			want:   ExecSuc,
+			late:   false,
+		},
+		{
+			name:   "Execution, USB with failed ID",
+			args:   args{callee: CalleeUSB, commandId: 3, noExec: false},
+			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsUSBCommandId}},
+			want:   NoExec,
+			late:   false,
+		},
+		{
 			name:   "Late Execution, USB",
-			args:   args{callee: CalleeUSB, noExec: false},
+			args:   args{callee: CalleeUSB, commandId: -1, noExec: false},
 			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsLateUSBCommand}},
 			want:   ExecSuc,
 			late:   true,
 		},
 		{
 			name:   "Execution, Ping",
-			args:   args{callee: CalleePing, noExec: false},
+			args:   args{callee: CalleePing, commandId: -1, noExec: false},
 			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsPingCommand}},
 			want:   ExecSuc,
 			late:   false,
 		},
 		{
+			name:   "Execution, Ping, Id",
+			args:   args{callee: CalleePing, commandId: 3, noExec: false},
+			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsPingCommandId}},
+			want:   ExecSuc,
+			late:   false,
+		},
+		{
+			name:   "Execution, Ping, Failed Id",
+			args:   args{callee: CalleePing, commandId: 4, noExec: false},
+			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsPingCommandId}},
+			want:   NoExec,
+			late:   false,
+		},
+		{
 			name:   "Late Execution, Ping",
-			args:   args{callee: CalleePing, noExec: false},
+			args:   args{callee: CalleePing, commandId: -1, noExec: false},
 			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsLatePingCommand}},
 			want:   ExecSuc,
 			late:   true,
 		},
 		{
 			name:   "Execution, Web",
-			args:   args{callee: CalleeWeb, noExec: false},
+			args:   args{callee: CalleeWeb, commandId: -1, noExec: false},
 			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsWebCommand}},
 			want:   ExecSuc,
 			late:   false,
 		},
 		{
+			name:   "Execution, Web, Id",
+			args:   args{callee: CalleeWeb, commandId: 4, noExec: false},
+			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsWebCommandId}},
+			want:   ExecSuc,
+			late:   false,
+		},
+		{
+			name:   "Execution, Web, failed Id",
+			args:   args{callee: CalleeWeb, commandId: 1, noExec: false},
+			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsWebCommandId}},
+			want:   NoExec,
+			late:   false,
+		},
+		{
 			name:   "Late Execution, Web",
-			args:   args{callee: CalleeWeb, noExec: false},
+			args:   args{callee: CalleeWeb, commandId: -1, noExec: false},
 			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsLateWebCommand}},
 			want:   ExecSuc,
 			late:   true,
 		},
 		{
 			name:   "No Execution, Wrong Callee: USB",
-			args:   args{callee: CalleeUSB, noExec: false},
+			args:   args{callee: CalleeUSB, commandId: -1, noExec: false},
 			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsWebCommand}},
 			want:   NoExec,
 			late:   false,
 		},
 		{
 			name:   "No Execution, Wrong Callee: Ping",
-			args:   args{callee: CalleePing, noExec: false},
+			args:   args{callee: CalleePing, commandId: -1, noExec: false},
 			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsUSBCommand}},
 			want:   NoExec,
 			late:   false,
 		},
 		{
 			name:   "No Execution, Wrong Callee: Web",
-			args:   args{callee: CalleeWeb, noExec: false},
+			args:   args{callee: CalleeWeb, commandId: -1, noExec: false},
 			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsPingCommand}},
 			want:   NoExec,
 		},
 		{
 			name:   "No Execution, Wrong Callee: USB, late",
-			args:   args{callee: CalleeUSB, noExec: false},
+			args:   args{callee: CalleeUSB, commandId: -1, noExec: false},
 			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsLatePingCommand}},
 			want:   NoExec,
 			late:   false,
 		},
 		{
 			name:   "No Execution, Wrong Callee: Ping, late",
-			args:   args{callee: CalleePing, noExec: false},
+			args:   args{callee: CalleePing, commandId: -1, noExec: false},
 			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsLateWebCommand}},
 			want:   NoExec,
 			late:   false,
 		},
 		{
 			name:   "No Execution, Wrong Callee: Web, late",
-			args:   args{callee: CalleeWeb, noExec: false},
+			args:   args{callee: CalleeWeb, commandId: -1, noExec: false},
 			fields: fields{FileLock: false, FileLockPresent: false, Commands: []Command{lsLateUSBCommand}},
 			want:   NoExec,
 			late:   false,
@@ -360,7 +449,7 @@ func TestConfig_exec(t *testing.T) {
 			} else {
 				c.deleteFileIfExisting(testFile)
 			}
-			got, late := c.exec(tt.args.callee, tt.args.noExec)
+			got, late := c.exec(tt.args.callee, tt.args.commandId, tt.args.noExec)
 			if got != tt.want {
 				t.Errorf("exec() = %v, want %v", got, tt.want)
 			}

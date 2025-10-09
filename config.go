@@ -35,6 +35,8 @@ type WebTarget struct {
 	RetryCount int `yaml:"retry_count"`
 	// If OnHTTPSFails is false RetryDelay defines the time in milliseconds to wait between two tries to curl.
 	RetryDelay time.Duration `yaml:"retry_delay"`
+	// If CommandId is set, any commands locked for this id will ignore other commands
+	CommandId int `yaml:"command_id"`
 }
 
 // PingTarget represents the configuration struct for pings to be tracked.
@@ -47,6 +49,8 @@ type PingTarget struct {
 	RetryCount int `yaml:"retry_count"`
 	// If OnSuccess is false RetryDelay defines the time in milliseconds to wait between two tries to ping.
 	RetryDelay time.Duration `yaml:"retry_delay"`
+	// If CommandId is set, any commands locked for this id will ignore other commands
+	CommandId int `yaml:"command_id"`
 }
 
 // Command represents the configuration struct for commands to be executed
@@ -60,6 +64,8 @@ type Command struct {
 	Ping bool `yaml:"ping"`
 	// Is this command executed on Web activation?
 	Web bool `yaml:"web"`
+	// Only execute on triggering targets with this id
+	Id int `yaml:"command_id"`
 }
 
 // Config represents the configuration for goTrack
@@ -142,7 +148,7 @@ func (c Config) commandExecution(command Command) uint8 {
 }
 
 // exec executes all commands that are enabled for the callee
-func (c Config) exec(callee uint8, noExec bool) (uint8, bool) {
+func (c Config) exec(callee uint8, commandId int, noExec bool) (uint8, bool) {
 	// If noExec is set nothing will be executed
 	if noExec {
 		c.log("Execution aborted due to \"NoExec\"")
@@ -156,26 +162,28 @@ func (c Config) exec(callee uint8, noExec bool) (uint8, bool) {
 		var lateCommands []Command
 		executed := NoExec
 		for _, command := range c.Commands {
-			if command.USB && callee == CalleeUSB {
-				if command.Late {
-					lateCommands = append(lateCommands, command)
-					continue
-				}
-				executed = consume(executed, c.commandExecution(command))
+			if command.Id < 0 || command.Id == commandId {
+				if command.USB && callee == CalleeUSB {
+					if command.Late {
+						lateCommands = append(lateCommands, command)
+						continue
+					}
+					executed = consume(executed, c.commandExecution(command))
 
-			} else if command.Ping && callee == CalleePing {
-				if command.Late {
-					lateCommands = append(lateCommands, command)
-					continue
-				}
-				executed = consume(executed, c.commandExecution(command))
+				} else if command.Ping && callee == CalleePing {
+					if command.Late {
+						lateCommands = append(lateCommands, command)
+						continue
+					}
+					executed = consume(executed, c.commandExecution(command))
 
-			} else if command.Web && callee == CalleeWeb {
-				if command.Late {
-					lateCommands = append(lateCommands, command)
-					continue
+				} else if command.Web && callee == CalleeWeb {
+					if command.Late {
+						lateCommands = append(lateCommands, command)
+						continue
+					}
+					executed = consume(executed, c.commandExecution(command))
 				}
-				executed = consume(executed, c.commandExecution(command))
 			}
 
 		}
