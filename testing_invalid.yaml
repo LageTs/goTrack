@@ -3,7 +3,7 @@ file_lock: true
 file_lock_inverted_mode: true
 file_lock_path: " "
 file_lock_deletion: true
-file_lock_creation: false
+file_lock_creation: true
 start_delay: 1h
 log_file: " "
 old_logs: 9

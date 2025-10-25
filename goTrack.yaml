@@ -1,12 +1,16 @@
 # Config for goTrack. Shall be placed in /etc/ as goTrack.yaml
 # Version of this config file
-config_version: 1.6
-# Shall the file lock be used? If activated commands will only be executed if the file doesn't exist.
+config_version: 1.7
+# Shall the file lock be used?
 file_lock: true
+# If activated commands will only be executed if the file exists.
+file_lock_inverted_mode: false
 # File to be checked for file lock
 file_lock_path: "/tmp/goTrack.lock"
-# If true, the file lock will be deleted at start, before delay
+# If true, the file lock will be deleted at start, before delay. Set false to use file_lock_creation
 file_lock_deletion: true
+# If true, the file lock will be created at start, before delay. Not compatible with file_lock_deletion = true
+file_lock_creation: false
 # Delay until start
 start_delay: 3s
 # Log file path - print if not existing

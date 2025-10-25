@@ -54,6 +54,8 @@ usb_ignored_ids:
 1.6
 
 ### Change log
+#### V1.7
+Added fileLock inverted mode
 #### V1.6
 Added execution on error configuration
 #### V1.5

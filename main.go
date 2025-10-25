@@ -132,6 +132,10 @@ func main() {
 	// Delete file lock if FileLockDeletion is activated
 	if config.FileLockDeletion {
 		config.deleteFileIfExisting(config.FileLockPath)
+	} else if config.FileLockCreation {
+		// Create file lock if FileLockCreation is activated
+		// else if as Deletion and Creation can't be activated both
+		config.createEmptyFileIfMissing(config.FileLockPath)
 	}
 
 	// Convert verboseFlag to var

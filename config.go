@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -71,8 +72,10 @@ type Command struct {
 // Config represents the configuration for goTrack
 type Config struct {
 	FileLock            bool          `yaml:"file_lock"`
+	FileLockInverted    bool          `yaml:"file_lock_inverted_mode"`
 	FileLockPath        string        `yaml:"file_lock_path"`
 	FileLockDeletion    bool          `yaml:"file_lock_deletion"`
+	FileLockCreation    bool          `yaml:"file_lock_creation"`
 	StartDelay          time.Duration `yaml:"start_delay"`
 	LogFile             string        `yaml:"log_file"`
 	OldLogs             int           `yaml:"old_logs"`
@@ -97,8 +100,10 @@ func NewConfig() *Config {
 
 	return &Config{
 		FileLock:            true,
+		FileLockInverted:    false,
 		FileLockPath:        "/tmp/goTrack.lock",
 		FileLockDeletion:    true,
+		FileLockCreation:    true,
 		StartDelay:          3 * time.Second,
 		LogFile:             "/var/log/goTrack.log",
 		OldLogs:             1,
@@ -135,6 +140,10 @@ func NewConfigFromFile(filename string) (*Config, error) {
 		return nil, err
 	}
 
+	if config.FileLockCreation && config.FileLockDeletion {
+		return nil, errors.New("ERROR: File lock creation and deletion enabled")
+	}
+
 	return config, nil
 }
 
@@ -155,8 +164,11 @@ func (c Config) exec(callee uint8, commandId int, noExec bool) (uint8, bool) {
 	if noExec {
 		c.log("Execution aborted due to \"NoExec\"")
 		return NoExec, false
-	} else if c.FileLock && fileExists(c.FileLockPath) {
+	} else if c.FileLock && !c.FileLockInverted && fileExists(c.FileLockPath) {
 		c.log("Execution skipped as file lock is activated and present")
+		return FileLock, false
+	} else if c.FileLock && c.FileLockInverted && !fileExists(c.FileLockPath) {
+		c.log("Execution skipped as file lock is inverted and not present")
 		return FileLock, false
 	} else {
 		// Execution will be started
@@ -278,6 +290,24 @@ func (c Config) deleteFileIfExisting(path string) {
 	}
 }
 
+// createEmptyFileIfMissing creates an empty file if it does not exist
+func (c Config) createEmptyFileIfMissing(path string) {
+	create, err := os.Create(path)
+	if err != nil {
+		c.logErr(err)
+		return
+	}
+	err = create.Close()
+	if err != nil {
+		c.logErr(err)
+		return
+	}
+	if !fileExists(path) {
+		c.log("File creation failed: " + path)
+		return
+	}
+}
+
 // createPath creates all dirs that are part of the given path
 func createPath(path string) {
 	err := os.MkdirAll(filepath.Dir(path), 0700)
@@ -286,6 +316,7 @@ func createPath(path string) {
 	}
 }
 
+// consume evaluates uint8 return values
 func consume(u, v uint8) uint8 {
 	if u == NoExec {
 		return v
