@@ -95,7 +95,7 @@ func TestWebTracker_curl(t *testing.T) {
 			}},
 			want: webCurl{
 				status:  200,
-				content: "OK\n",
+				content: "OK",
 				isHttps: true,
 			},
 		},
@@ -109,7 +109,7 @@ func TestWebTracker_curl(t *testing.T) {
 			}},
 			want: webCurl{
 				status:  200,
-				content: "OK\n",
+				content: "OK",
 				isHttps: false,
 			},
 		},
