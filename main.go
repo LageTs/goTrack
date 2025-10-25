@@ -10,7 +10,7 @@ import (
 )
 
 const defaultConfigPath = "/etc/goTrack.yaml"
-const version = "1.3"
+const version = "1.7"
 
 func main() {
 	// Define command-line flags
