@@ -150,7 +150,7 @@ func main() {
 	// Create USB tracker with loaded configuration
 	if config.USBTracking {
 		usbTracker := NewUSBTracker(config)
-		usbTracker.InitUSBDevices(verbose)
+		usbTracker.InitUSBDevices(verbose, debug)
 
 		// Start ticker
 		usbTicker := time.NewTicker(config.USBInterval)

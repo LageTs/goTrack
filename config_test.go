@@ -131,7 +131,7 @@ func TestConfig_commandExecution(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			c := NewConfig()
 			c.LogFile = ""
-			if got := c.commandExecution(tt.args.command); got != tt.want {
+			if got := c.commandExecution(false, tt.args.command); got != tt.want {
 				t.Errorf("commandExecution() = %v, want %v", got, tt.want)
 			}
 		})
@@ -479,7 +479,7 @@ func TestConfig_exec(t *testing.T) {
 			} else {
 				c.deleteFileIfExisting(testFile)
 			}
-			got, late := c.exec(tt.args.callee, tt.args.commandId, tt.args.noExec)
+			got, late := c.exec(false, tt.args.callee, tt.args.commandId, tt.args.noExec)
 			if got != tt.want {
 				t.Errorf("exec() = %v, want %v", got, tt.want)
 			}

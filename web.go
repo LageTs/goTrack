@@ -79,7 +79,7 @@ func (w *WebTracker) trackWebSource(noExec, debug bool, config WebTarget) uint8 
 
 	if returnValue != WebNoExec {
 		w.Config.log("Executing on web tracking for: " + config.Target)
-		w.Config.exec(CalleeWeb, config.CommandId, noExec)
+		w.Config.exec(debug, CalleeWeb, config.CommandId, noExec)
 	}
 	return returnValue
 }

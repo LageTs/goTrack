@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -148,18 +149,23 @@ func NewConfigFromFile(filename string) (*Config, error) {
 }
 
 // commandExecution runs any given command without any validation
-func (c Config) commandExecution(command Command) uint8 {
+func (c Config) commandExecution(debug bool, command Command) uint8 {
 	output, err := exec.Command(command.Command, command.Args...).Output()
-	c.log(string(output))
+	if outputString := string(output); len(outputString) > 0 {
+		c.log("Command: " + command.Command + " (CommandID: " + strconv.Itoa(command.Id) + ") Execution output: " + string(output))
+	}
 	if err != nil {
+		c.log("Command: " + command.Command + " (CommandID: " + strconv.Itoa(command.Id) + ") Error on execution:")
 		c.logErr(err)
 		return ExecErr
+	} else if debug {
+		c.log("Command execution without error: " + command.Command + "\nCommandID: " + strconv.Itoa(command.Id))
 	}
 	return ExecSuc
 }
 
 // exec executes all commands that are enabled for the callee
-func (c Config) exec(callee uint8, commandId int, noExec bool) (uint8, bool) {
+func (c Config) exec(debug bool, callee uint8, commandId int, noExec bool) (uint8, bool) {
 	// If noExec is set nothing will be executed
 	if noExec {
 		c.log("Execution aborted due to \"NoExec\"")
@@ -182,21 +188,21 @@ func (c Config) exec(callee uint8, commandId int, noExec bool) (uint8, bool) {
 						lateCommands = append(lateCommands, command)
 						continue
 					}
-					executed = consume(executed, c.commandExecution(command))
+					executed = consume(executed, c.commandExecution(debug, command))
 
 				} else if command.Ping && callee == CalleePing {
 					if command.Late {
 						lateCommands = append(lateCommands, command)
 						continue
 					}
-					executed = consume(executed, c.commandExecution(command))
+					executed = consume(executed, c.commandExecution(debug, command))
 
 				} else if command.Web && callee == CalleeWeb {
 					if command.Late {
 						lateCommands = append(lateCommands, command)
 						continue
 					}
-					executed = consume(executed, c.commandExecution(command))
+					executed = consume(executed, c.commandExecution(debug, command))
 				}
 			}
 
@@ -204,7 +210,7 @@ func (c Config) exec(callee uint8, commandId int, noExec bool) (uint8, bool) {
 		// Execute late commands
 		late := false
 		for _, command := range lateCommands {
-			temp := c.commandExecution(command)
+			temp := c.commandExecution(debug, command)
 			executed = consume(executed, temp)
 			if temp == ExecSuc {
 				late = true

@@ -51,9 +51,11 @@ usb_ignored_ids:
 ```
 
 ## Version
-1.6
+1.7.1
 
 ### Change log
+#### V1.7.1
+More debugging output added
 #### V1.7
 Added fileLock inverted mode
 #### V1.6
