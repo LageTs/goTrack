@@ -65,8 +65,8 @@ interval_tracking: false
 # Timestamps to react to
 interval_targets:
   - interval: 1h
-    start_at: "" # Timestamp as ISO 8601. Do not react before timestamp. If empty string, react always
-    stop_at: "" # Timestamp as ISO 8601. Do not react after timestamp. If empty string, react always
+    start_at: "2000-01-20T12:31:00Z" # Timestamp as ISO 8601. Do not react before timestamp. Must be set correctly
+    stop_at: "3000-01-20T12:31:00Z" # Timestamp as ISO 8601. Do not react after timestamp. Must be set correctly
     execute_on_start: false # If true, commands will be executed once at start and then every set duration.
     command_id: -1 # ID for command binding, ignored unless commands are set up for ids
 # Commands to be executed

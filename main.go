@@ -11,7 +11,7 @@ import (
 )
 
 const defaultConfigPath = "/etc/goTrack.yaml"
-const currentVersion = "1.8"
+const currentVersion = "1.8.1"
 const minConfigVersion = "1.8"
 
 func main() {
