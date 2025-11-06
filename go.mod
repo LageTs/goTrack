@@ -3,6 +3,7 @@ module goTrack
 go 1.24.0
 
 require (
+	github.com/hashicorp/go-version v1.7.0
 	github.com/prometheus-community/pro-bing v0.7.0
 	github.com/spf13/pflag v1.0.10
 	gopkg.in/yaml.v2 v2.4.0

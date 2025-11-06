@@ -5,12 +5,14 @@ import (
 	"os"
 	"time"
 
+	"github.com/hashicorp/go-version"
 	"github.com/spf13/pflag"
 	"gopkg.in/yaml.v2"
 )
 
 const defaultConfigPath = "/etc/goTrack.yaml"
-const version = "1.7"
+const currentVersion = "1.7.1"
+const minConfigVersion = "1.7"
 
 func main() {
 	// Define command-line flags
@@ -22,7 +24,7 @@ func main() {
 	commandFlag := pflag.StringP("command", "c", "", "Command (chain) to be executed")
 	commandArgFlag := pflag.StringP("arguments", "a", "", "Command arguments")
 	configPathFlag := pflag.StringP("configPath", "p", "", "Path to config")
-	versionFlag := pflag.BoolP("version", "v", false, "Print version text")
+	versionFlag := pflag.BoolP("currentVersion", "v", false, "Print currentVersion text")
 
 	// Parse command-line flags
 	pflag.Parse()
@@ -33,9 +35,9 @@ func main() {
 		return
 	}
 
-	// Show version text
+	// Show currentVersion text
 	if *versionFlag {
-		fmt.Println("Version: goTrack " + version)
+		fmt.Println("Version: goTrack " + currentVersion)
 		return
 	}
 
@@ -94,6 +96,20 @@ func main() {
 		if debug {
 			config.log("Using default config")
 		}
+	}
+
+	minVersionComp, errC := version.NewVersion(minConfigVersion)
+	if errC != nil {
+		config.logErr(errC)
+		return
+	}
+	configVersionComp, errC := version.NewVersion(config.Version)
+	if errC != nil {
+		config.logErr(errC)
+		return
+	}
+	if configVersionComp.LessThan(minVersionComp) {
+		NewConfig().printAndLog("Config version is older than minimum version " + minConfigVersion + "\nUpdate your config to fit to current currentVersion: " + currentVersion)
 	}
 
 	// Override interval with command-line flag if provided

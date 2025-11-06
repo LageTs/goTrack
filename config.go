@@ -72,6 +72,7 @@ type Command struct {
 
 // Config represents the configuration for goTrack
 type Config struct {
+	Version             string        `yaml:"config_version"`
 	FileLock            bool          `yaml:"file_lock"`
 	FileLockInverted    bool          `yaml:"file_lock_inverted_mode"`
 	FileLockPath        string        `yaml:"file_lock_path"`

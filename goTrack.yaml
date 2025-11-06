@@ -1,6 +1,6 @@
 # Config for goTrack. Shall be placed in /etc/ as goTrack.yaml
 # Version of this config file
-config_version: 1.7
+config_version: 1.7.1
 # Shall the file lock be used?
 file_lock: true
 # If activated commands will only be executed if the file exists.
