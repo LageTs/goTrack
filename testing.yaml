@@ -19,6 +19,7 @@ ping_targets:
     on_success: true
     retry_count: 9
     retry_delay: 1h
+    command_id: -1
 web_tracking: true
 web_interval: 1h
 web_targets:
@@ -30,6 +31,19 @@ web_targets:
     on_https_fails: true
     retry_count: 9
     retry_delay: 1h
+    command_id: -1
+time_tracking: true
+time_targets:
+  - timestamp: "2000-01-20T12:31:00Z"
+    tolerance_window: 1h
+    command_id: -1
+interval_tracking: true
+interval_targets:
+  - interval: 1h
+    start_at: "2000-01-20T12:31:00Z"
+    stop_at: "2000-01-20T12:31:00Z"
+    execute_on_start: true
+    command_id: -1
 commands:
   - command: " "
     args:
@@ -38,3 +52,6 @@ commands:
     usb: true
     ping: true
     web: true
+    time: true
+    interval: true
+    command_id: -1

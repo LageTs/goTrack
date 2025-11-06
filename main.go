@@ -11,8 +11,8 @@ import (
 )
 
 const defaultConfigPath = "/etc/goTrack.yaml"
-const currentVersion = "1.7.1"
-const minConfigVersion = "1.7"
+const currentVersion = "1.8"
+const minConfigVersion = "1.8"
 
 func main() {
 	// Define command-line flags
@@ -110,6 +110,7 @@ func main() {
 	}
 	if configVersionComp.LessThan(minVersionComp) {
 		NewConfig().printAndLog("Config version is older than minimum version " + minConfigVersion + "\nUpdate your config to fit to current currentVersion: " + currentVersion)
+		os.Exit(1)
 	}
 
 	// Override interval with command-line flag if provided
@@ -221,6 +222,55 @@ func main() {
 				}
 			}
 		}()
+	}
+
+	if config.TimeTracking {
+		for _, t := range config.TimeTrackingConfigs {
+			until := t.Timestamp.Sub(time.Now())
+			if until > 0 {
+				go func() {
+					config.printAndLog("Waiting nonblocking until: " + t.Timestamp.String())
+					time.Sleep(until)
+					config.printAndLog("Execution for timestamp: " + t.Timestamp.String())
+					config.exec(debug, CalleeTime, t.CommandId, noExec)
+				}()
+			} else if time.Now().Sub(t.Timestamp) < t.Tolerance {
+				config.printAndLog("Timestamp exceeded within tolerance: " + t.Timestamp.String())
+				config.exec(debug, CalleeTime, t.CommandId, noExec)
+			}
+		}
+	}
+
+	if config.IntervalTracking {
+		for _, i := range config.IntervalTrackingConfigs {
+
+			config.printAndLog("Started Interval tracking every " + i.Interval.String() + " at: " + time.Now().Format("15:04:05.00"))
+
+			if i.ExecuteOnStart {
+				config.log("ExecuteOnStart: " + i.Interval.String())
+				config.exec(debug, CalleeInterval, i.CommandId, noExec)
+			}
+
+			go func() {
+				intervalTicker := time.NewTicker(i.Interval)
+				defer intervalTicker.Stop()
+				for {
+					if time.Now().Before(i.StartTime) {
+						duration := i.StartTime.Sub(time.Now())
+						config.printAndLog("StartTime of " + i.Interval.String() + " not yet reached. Sleep nonblocking for: " + duration.String())
+						time.Sleep(i.StartTime.Sub(time.Now()))
+					} else if time.Now().After(i.StopTime) {
+						config.printAndLog("StopTime of " + i.Interval.String() + " reached.")
+						return
+					}
+					select {
+					case <-intervalTicker.C:
+						config.log("Execution on interval: " + i.Interval.String())
+						config.exec(debug, CalleeInterval, i.CommandId, noExec)
+					}
+				}
+			}()
+		}
 	}
 
 	select {} // keeps program running

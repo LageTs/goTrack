@@ -7,11 +7,12 @@ This project is meant to increase security as it allows automatic reactions to d
 ## Build
 Just run
 ```shell
+go tidy
 go build
 ```
 
 ## Run
-Run it with `-h` for help or `-n` to test without executing any destructive commands
+Run it with `-h` for help or `-n` to test without executing any (destructive) commands
 ```shell
 goTrack -h
 ```
@@ -24,38 +25,16 @@ goTrack is meant to be run as root.
 Place the executable at `/usr/local/bin/goTrack` and the config file at `/etc/goTrack.yaml`.
 
 ## Config
-The config file should be easy to understand, here is how you set the commands to be executed in worst case:
-```yaml
-commands:
-  - command: "shutdown" # Command
-    args: # Arguments as strings
-      - "0"
-    late: true # Set true to execute commands after others
-    usb: true # Set true to execute command on usb changes
-    ping: false # Set true to execute command on ping tracking
-    web: false # Set true to execute command on web tracking
-```
-`command` is the terminal command to be executed if `goTrack` detects a not ignored change.
-`args` are the arguments for that command
-`late` Commands are executed in two queues: `late=false` commands will guaranteed be executed before `late=true` commands. Commands with the same `late` state are meant to be executed in order but that is not guaranteed.
-`usb` commands with this parameter set to true will be executed with an usb-change detected by goTrack. `ping` and `web` work in the same way as `usb`.
-```
-usb_ignored_ids:
-- "Test"
-```
-Includes ignored IDs for usb tracking. Those IDs can be seen if `goTrack -n` is run. Example:
-```
-usb_ignored_ids:
-- "1234:5678"
-- "ABCD:9876"
-```
+The config file should be easy to understand.
 
 ## Version
-1.7.1
+1.8
 
 ### Change log
+#### V1.8
+Added actions by timer
 #### V1.7.1
-More debugging output added
+Added more debugging output
 Added version checking
 #### V1.7
 Added fileLock inverted mode
@@ -77,4 +56,3 @@ Initial release
 ## Future Work
 In the future this project can be extended with the ability to check:
 - Events: React to events like shortcuts
-- (optional) Timer: React if some timings are reached (period, time stamp)

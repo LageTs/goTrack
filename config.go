@@ -15,10 +15,34 @@ import (
 const CalleeUSB uint8 = 1
 const CalleePing uint8 = 2
 const CalleeWeb uint8 = 3
+const CalleeTime uint8 = 4
+const CalleeInterval uint8 = 5
 const ExecSuc uint8 = 0
 const ExecErr uint8 = 1
 const NoExec uint8 = 2
 const FileLock uint8 = 3
+
+// IntervalTarget represents the configuration struct for timestamps to be tracked.
+type IntervalTarget struct {
+	Interval time.Duration `yaml:"interval"`
+	// StartTime defines the timestamp to start the Timer
+	StartTime time.Time `yaml:"start_at"`
+	// StopTime defines the timestamp to stop the Timer
+	StopTime time.Time `yaml:"stop_at"`
+	// If ExecuteOnStart in true, the command will be run on Timer start and then every Interval
+	ExecuteOnStart bool `yaml:"execute_on_start"`
+	// If CommandId is set, any commands locked for this id will ignore other commands
+	CommandId int `yaml:"command_id"`
+}
+
+// TimeTarget represents the configuration struct for timestamps to be tracked.
+type TimeTarget struct {
+	Timestamp time.Time `yaml:"timestamp"`
+	// Tolerance is the duration for command execution if timestamp occurred before detection
+	Tolerance time.Duration `yaml:"tolerance_window"`
+	// If CommandId is set, any commands locked for this id will ignore other commands
+	CommandId int `yaml:"command_id"`
+}
 
 // WebTarget represents the configuration struct for web content to be tracked.
 type WebTarget struct {
@@ -66,32 +90,40 @@ type Command struct {
 	Ping bool `yaml:"ping"`
 	// Is this command executed on Web activation?
 	Web bool `yaml:"web"`
+	// Is this command executed on Time activation?
+	Time bool `yaml:"time"`
+	// Is this command executed on Interval activation?
+	Interval bool `yaml:"interval"`
 	// Only execute on triggering targets with this id
 	Id int `yaml:"command_id"`
 }
 
 // Config represents the configuration for goTrack
 type Config struct {
-	Version             string        `yaml:"config_version"`
-	FileLock            bool          `yaml:"file_lock"`
-	FileLockInverted    bool          `yaml:"file_lock_inverted_mode"`
-	FileLockPath        string        `yaml:"file_lock_path"`
-	FileLockDeletion    bool          `yaml:"file_lock_deletion"`
-	FileLockCreation    bool          `yaml:"file_lock_creation"`
-	StartDelay          time.Duration `yaml:"start_delay"`
-	LogFile             string        `yaml:"log_file"`
-	OldLogs             int           `yaml:"old_logs"`
-	ExecOnError         bool          `yaml:"execution_on_error"`
-	USBTracking         bool          `yaml:"usb_tracking"`
-	USBInterval         time.Duration `yaml:"usb_interval"`
-	IgnoredIDs          []string      `yaml:"usb_ignored_ids"`
-	PingTracking        bool          `yaml:"ping_tracking"`
-	PingInterval        time.Duration `yaml:"ping_interval"`
-	PingTrackingConfigs []PingTarget  `yaml:"ping_targets"`
-	WebTracking         bool          `yaml:"web_tracking"`
-	WebInterval         time.Duration `yaml:"web_interval"`
-	WebTrackingConfigs  []WebTarget   `yaml:"web_targets"`
-	Commands            []Command     `yaml:"commands"`
+	Version                 string           `yaml:"config_version"`
+	FileLock                bool             `yaml:"file_lock"`
+	FileLockInverted        bool             `yaml:"file_lock_inverted_mode"`
+	FileLockPath            string           `yaml:"file_lock_path"`
+	FileLockDeletion        bool             `yaml:"file_lock_deletion"`
+	FileLockCreation        bool             `yaml:"file_lock_creation"`
+	StartDelay              time.Duration    `yaml:"start_delay"`
+	LogFile                 string           `yaml:"log_file"`
+	OldLogs                 int              `yaml:"old_logs"`
+	ExecOnError             bool             `yaml:"execution_on_error"`
+	USBTracking             bool             `yaml:"usb_tracking"`
+	USBInterval             time.Duration    `yaml:"usb_interval"`
+	IgnoredIDs              []string         `yaml:"usb_ignored_ids"`
+	PingTracking            bool             `yaml:"ping_tracking"`
+	PingInterval            time.Duration    `yaml:"ping_interval"`
+	PingTrackingConfigs     []PingTarget     `yaml:"ping_targets"`
+	WebTracking             bool             `yaml:"web_tracking"`
+	WebInterval             time.Duration    `yaml:"web_interval"`
+	WebTrackingConfigs      []WebTarget      `yaml:"web_targets"`
+	TimeTracking            bool             `yaml:"time_tracking"`
+	TimeTrackingConfigs     []TimeTarget     `yaml:"time_targets"`
+	IntervalTracking        bool             `yaml:"interval_tracking"`
+	IntervalTrackingConfigs []IntervalTarget `yaml:"interval_targets"`
+	Commands                []Command        `yaml:"commands"`
 }
 
 // NewConfig Constructor for Config
@@ -99,27 +131,34 @@ func NewConfig() *Config {
 	commands := []Command{{}}
 	pingTrackingConfig := []PingTarget{{}}
 	webTrackingConfig := []WebTarget{{}}
+	timeTrackingConfig := []TimeTarget{{}}
+	IntervalTrackingConfigs := []IntervalTarget{{}}
 
 	return &Config{
-		FileLock:            true,
-		FileLockInverted:    false,
-		FileLockPath:        "/tmp/goTrack.lock",
-		FileLockDeletion:    true,
-		FileLockCreation:    true,
-		StartDelay:          3 * time.Second,
-		LogFile:             "/var/log/goTrack.log",
-		OldLogs:             1,
-		ExecOnError:         true,
-		USBTracking:         false,
-		USBInterval:         1000 * time.Millisecond,
-		IgnoredIDs:          nil,
-		PingTracking:        false,
-		PingInterval:        10000 * time.Millisecond,
-		PingTrackingConfigs: pingTrackingConfig,
-		WebTracking:         false,
-		WebInterval:         60000 * time.Millisecond,
-		WebTrackingConfigs:  webTrackingConfig,
-		Commands:            commands,
+		Version:                 "1.8",
+		FileLock:                true,
+		FileLockInverted:        false,
+		FileLockPath:            "/tmp/goTrack.lock",
+		FileLockDeletion:        true,
+		FileLockCreation:        true,
+		StartDelay:              3 * time.Second,
+		LogFile:                 "/var/log/goTrack.log",
+		OldLogs:                 1,
+		ExecOnError:             true,
+		USBTracking:             false,
+		USBInterval:             1000 * time.Millisecond,
+		IgnoredIDs:              nil,
+		PingTracking:            false,
+		PingInterval:            10000 * time.Millisecond,
+		PingTrackingConfigs:     pingTrackingConfig,
+		WebTracking:             false,
+		WebInterval:             60000 * time.Millisecond,
+		WebTrackingConfigs:      webTrackingConfig,
+		TimeTracking:            false,
+		TimeTrackingConfigs:     timeTrackingConfig,
+		IntervalTracking:        false,
+		IntervalTrackingConfigs: IntervalTrackingConfigs,
+		Commands:                commands,
 	}
 }
 
@@ -204,6 +243,18 @@ func (c Config) exec(debug bool, callee uint8, commandId int, noExec bool) (uint
 						continue
 					}
 					executed = consume(executed, c.commandExecution(debug, command))
+				} else if command.Web && callee == CalleeTime {
+					if command.Late {
+						lateCommands = append(lateCommands, command)
+						continue
+					}
+					executed = consume(executed, c.commandExecution(debug, command))
+				} else if command.Web && callee == CalleeInterval {
+					if command.Late {
+						lateCommands = append(lateCommands, command)
+						continue
+					}
+					executed = consume(executed, c.commandExecution(debug, command))
 				}
 			}
 
@@ -281,7 +332,7 @@ func fileExists(path string) bool {
 		return false
 	} else if err != nil {
 		println("File error", err)
-		os.Exit(-1)
+		os.Exit(2)
 	}
 	return true
 }

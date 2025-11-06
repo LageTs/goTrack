@@ -1,6 +1,6 @@
 # Config for goTrack. Shall be placed in /etc/ as goTrack.yaml
 # Version of this config file
-config_version: 1.7.1
+config_version: 1.8
 # Shall the file lock be used?
 file_lock: true
 # If activated commands will only be executed if the file exists.
@@ -53,6 +53,22 @@ web_targets:
     retry_count: 3 # Number of retries if curl fails before command execution
     retry_delay: 500ms # Time to wait between retires
     command_id: -1 # ID for command binding, ignored unless commands are set up for ids
+# Enable time tracking
+time_tracking: false
+# Timestamps to react to
+time_targets:
+  - timestamp: "2000-01-20T12:31:00Z" # Timestamp as ISO 8601, UTC or with timezone (Z01:00 for UTC+1)
+    tolerance_window: 1h # Time to also act after expiry. For example if time is set to today, midnight and tolerance_window is set to 24h, this will be executed even if the program starts later today. If set to 0 it will only be executed exactly, if set to -1 this will be executed regardless of elapsed time, if set to 30 Minutes it will be executed when timestamp was less than 30 Minutes before goTrack start.
+    command_id: -1 # ID for command binding, ignored unless commands are set up for ids
+# Enable interval tracking
+interval_tracking: false
+# Timestamps to react to
+interval_targets:
+  - interval: 1h
+    start_at: "" # Timestamp as ISO 8601. Do not react before timestamp. If empty string, react always
+    stop_at: "" # Timestamp as ISO 8601. Do not react after timestamp. If empty string, react always
+    execute_on_start: false # If true, commands will be executed once at start and then every set duration.
+    command_id: -1 # ID for command binding, ignored unless commands are set up for ids
 # Commands to be executed
 commands:
   - command: "shutdown" # Command
@@ -62,5 +78,7 @@ commands:
     usb: false # Set true to execute command on usb changes
     ping: false # Set true to execute command on ping tracking
     web: false # Set true to execute command on web tracking
+    time: false # Set true to execute command on time tracking
+    interval: false # Set true to execute command on interval tracking
     # command_id can also be seen as "only execute in combination with this id"
     command_id: -1 # If set to -1 this will be executed regardless of triggering target, if greater than -1 it will only be executed if triggering target has this command_id
