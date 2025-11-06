@@ -135,7 +135,7 @@ func NewConfig() *Config {
 	IntervalTrackingConfigs := []IntervalTarget{{}}
 
 	return &Config{
-		Version:                 "1.8",
+		Version:                 currentVersion,
 		FileLock:                true,
 		FileLockInverted:        false,
 		FileLockPath:            "/tmp/goTrack.lock",
