@@ -28,9 +28,11 @@ Place the executable at `/usr/local/bin/goTrack` and the config file at `/etc/go
 The config file should be easy to understand.
 
 ## Version
-1.8.1
+1.8.2
 
 ### Change log
+#### V1.8.2
+Bug fix for execution of time and interval commands
 #### V1.8.1
 Config file correction for timestamps
 #### V1.8

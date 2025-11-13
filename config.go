@@ -243,13 +243,13 @@ func (c Config) exec(debug bool, callee uint8, commandId int, noExec bool) (uint
 						continue
 					}
 					executed = consume(executed, c.commandExecution(debug, command))
-				} else if command.Web && callee == CalleeTime {
+				} else if command.Time && callee == CalleeTime {
 					if command.Late {
 						lateCommands = append(lateCommands, command)
 						continue
 					}
 					executed = consume(executed, c.commandExecution(debug, command))
-				} else if command.Web && callee == CalleeInterval {
+				} else if command.Interval && callee == CalleeInterval {
 					if command.Late {
 						lateCommands = append(lateCommands, command)
 						continue
